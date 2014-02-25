@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Netbeans API
+Bundle-SymbolicName: org.netbeans.api
+Bundle-Version: 1.73.0.qualifier
+Bundle-ClassPath: org-openide-util-RELEASE73.jar,
+ org-openide-util-lookup-RELEASE73.jar
+Bundle-Vendor: Netbeans
+Export-Package: org.netbeans.modules.openide.util,
+ org.openide,
+ org.openide.util,
+ org.openide.util.actions,
+ org.openide.util.datatransfer,
+ org.openide.util.io,
+ org.openide.util.lookup,
+ org.openide.util.lookup.implspi,
+ org.openide.xml
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7

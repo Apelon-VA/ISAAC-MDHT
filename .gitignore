@@ -1,0 +1,15 @@
+### Maven Stuff
+target
+target/**
+
+### Eclipse Stuff
+bin
+bin/**
+tmp
+tmp/**
+
+### Mac Stuff
+.DS_Store
+
+### Other Stuff
+*.log

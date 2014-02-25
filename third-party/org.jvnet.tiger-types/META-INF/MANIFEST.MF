@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: jvnet Tiger-types
+Bundle-SymbolicName: org.jvnet.tiger-types
+Bundle-Version: 1.4.0.qualifier
+Bundle-ClassPath: tiger-types-1.4.jar
+Export-Package: org.jvnet.tiger_types;version="1.4.0.qualifier"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7

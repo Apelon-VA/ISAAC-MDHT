@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="%category_ISAAC"
+            id="gov.va.isaac.mdht.otf.ui">
+      </category>
+      <view
+            name="Taxonomy"
+            icon="icons/sample.gif"
+            category="gov.va.isaac.mdht.otf.ui"
+            class="gov.va.isaac.mdht.otf.ui.views.TaxonomyView"
+            id="gov.va.isaac.mdht.otf.ui.views.TaxonomyView">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.jdt.ui.JavaPerspective">
+         <view
+               ratio="0.5"
+               relative="org.eclipse.ui.views.ProblemView"
+               relationship="right"
+               id="gov.va.isaac.mdht.otf.ui.views.TaxonomyView">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.help.contexts">
+      <contexts
+            file="contexts.xml">
+      </contexts>
+   </extension>
+
+   <!-- Pop-up action menu contribution -->
+   <extension
+         point="org.eclipse.ui.popupMenus">
+	<viewerContribution
+			id="gov.va.isaac.mdht.otf.ui.views.TaxonomyView"
+			targetID="gov.va.isaac.mdht.otf.ui.views.TaxonomyView">
+	     <menu
+	           label="%menu_ISAAC"
+	           path="additions"
+	           id="gov.va.isaac.mdht.otf.ui.additions">
+	        <separator
+	              name="ihtsdo">
+	        </separator>
+	     </menu>
+		<action id="gov.va.isaac.mdht.otf.ui.actions.DisplayConceptInConsole"
+			label="%displayInConsole_label"
+			icon="icons/obj16/Concept.gif"
+			menubarPath="print.ext"
+			class="gov.va.isaac.mdht.otf.ui.actions.DisplayConceptInConsole">	
+		</action>
+		<!--
+		<action id="gov.va.isaac.mdht.otf.ui.actions.SearchConcepts"
+			label="%searchConcepts_label"
+			icon="icons/obj16/Concept.gif"
+			menubarPath="print.ext"
+			class="gov.va.isaac.mdht.otf.ui.actions.SearchConcepts">	
+		</action>
+		-->
+		
+		<action id="gov.va.isaac.mdht.otf.ui.actions.RetireConcept"
+			label="%retireConcept_label"
+			icon="icons/obj16/Retired.gif"
+			menubarPath="edit"
+			class="gov.va.isaac.mdht.otf.ui.actions.RetireConcept">	
+		</action>
+		<action id="gov.va.isaac.mdht.otf.ui.actions.CommitConcept"
+			label="%commitConcept_label"
+			icon="icons/obj16/Uncommitted.gif"
+			menubarPath="edit"
+			class="gov.va.isaac.mdht.otf.ui.actions.CommitConcept">	
+		</action>
+		<action id="gov.va.isaac.mdht.otf.ui.actions.CancelConceptChanges"
+			label="%cancelConceptChanges_label"
+			icon="icons/eview16/change.gif"
+			menubarPath="edit"
+			class="gov.va.isaac.mdht.otf.ui.actions.CancelConceptChanges">	
+		</action>
+		<action id="gov.va.isaac.mdht.otf.ui.actions.AddChildConcept"
+			label="%addChildConcept_label"
+			icon="icons/obj16/Concept.gif"
+			menubarPath="edit"
+			class="gov.va.isaac.mdht.otf.ui.actions.AddChildConcept">	
+		</action>
+	</viewerContribution>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.popupMenus">
+         
+      <objectContribution
+            adaptable="true"
+            id="gov.va.isaac.mdht.otf.ui.ComponentBI"
+            objectClass="org.ihtsdo.otf.tcc.api.chronicle.ComponentBI">
+	     <menu
+	           label="%menu_ISAAC"
+	           path="additions"
+	           id="gov.va.isaac.mdht.otf.ui.additions">
+	        <separator
+	              name="ihtsdo">
+	        </separator>
+	     </menu>
+	  </objectContribution>
+   </extension>
+   
+   <!-- Properties view tab contribution -->
+   <extension
+         point="org.eclipse.ui.views.properties.tabbed.propertyContributor">
+      <propertyContributor
+            contributorId="org.ihtsdo.otf.ui.properties"
+            typeMapper="gov.va.isaac.mdht.otf.ui.properties.ComponentTypeMapper"
+            labelProvider="gov.va.isaac.mdht.otf.ui.properties.OTFSheetLabelProvider">
+         <propertyCategory
+               category="core">
+         </propertyCategory>
+         <propertyCategory
+               category="extension">
+         </propertyCategory>
+         <propertyCategory
+               category="annotation">
+         </propertyCategory>
+         <propertyCategory
+               category="advanced">
+         </propertyCategory>
+      </propertyContributor>
+   </extension>
+ 
+ 
+	<extension point="org.eclipse.ui.views.properties.tabbed.propertyTabs">
+		<propertyTabs contributorId="org.ihtsdo.otf.ui.properties">  
+			<propertyTab
+               category="core"
+               label="%tab.description.label"
+               id="property.tab.OTFDescriptionSection">           
+			</propertyTab> 
+			<propertyTab
+               category="core"
+               label="%tab.relationship.label"
+               id="property.tab.OTFRelationshipSection"
+	           afterTab="property.tab.OTFDescriptionSection">           
+			</propertyTab> 
+			<propertyTab
+               category="core"
+               label="%tab.refset.label"
+               id="property.tab.OTFRefsetSection"
+	           afterTab="property.tab.OTFRelationshipSection">           
+			</propertyTab> 
+	         <propertyTab
+	           label="%tab.identifier.label"
+	           category="core"
+	           id="property.tab.OTFIdentifierSection"
+	           afterTab="property.tab.OTFRelationshipSection">
+	         </propertyTab>   
+		</propertyTabs>
+	</extension>
+	
+   <extension point="org.eclipse.ui.views.properties.tabbed.propertySections">
+       <propertySections contributorId="org.ihtsdo.otf.ui.properties">
+          <propertySection tab="property.tab.OTFDescriptionSection" 
+	 	     class="gov.va.isaac.mdht.otf.ui.properties.DescriptionSection" 
+	 	     id="property.section.DescriptionSection">
+	            <input type="org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI"/>
+	      </propertySection>
+          <propertySection tab="property.tab.OTFRelationshipSection" 
+	 	     class="gov.va.isaac.mdht.otf.ui.properties.RelationshipSection" 
+	 	     id="property.section.RelationshipSection">
+	            <input type="org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI"/>
+	      </propertySection>
+          <propertySection tab="property.tab.OTFRefsetSection" 
+	 	     class="gov.va.isaac.mdht.otf.ui.properties.RefsetMemberSection" 
+	 	     id="property.section.RefsetMemberSection">
+	            <input type="org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI"/>
+	      </propertySection>
+	  </propertySections>
+   </extension> 
+ 
+</plugin>

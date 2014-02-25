@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry exported="true" kind="lib" path="external/asm-all-repackaged-2.2.0-b14.jar"/>
+	<classpathentry exported="true" kind="lib" path="external/bean-validator-2.2.0-b14.jar"/>
+	<classpathentry exported="true" kind="lib" path="external/cglib-2.2.0-b14.jar"/>
+	<classpathentry exported="true" kind="lib" path="external/javax.inject-2.2.0-b14.jar"/>
+	<classpathentry exported="true" kind="lib" path="class-model-2.2.0-b14.jar"/>
+	<classpathentry exported="true" kind="lib" path="config-types-2.2.0-b14.jar"/>
+	<classpathentry exported="true" kind="lib" path="core-2.2.0-b14.jar"/>
+	<classpathentry exported="true" kind="lib" path="hk2-api-2.2.0-b14.jar"/>
+	<classpathentry exported="true" kind="lib" path="hk2-config-2.2.0-b14.jar"/>
+	<classpathentry exported="true" kind="lib" path="hk2-inhabitant-generator-2.2.0-b14.jar"/>
+	<classpathentry exported="true" kind="lib" path="hk2-locator-2.2.0-b14.jar"/>
+	<classpathentry exported="true" kind="lib" path="hk2-runlevel-2.2.0-b14.jar"/>
+	<classpathentry exported="true" kind="lib" path="hk2-utils-2.2.0-b14.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry exported="true" kind="lib" path="hk2-2.2.0-b14.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
