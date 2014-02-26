@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: IHTSDO OTF Utilities
+Bundle-SymbolicName: gov.va.isaac.mdht.otf
+Bundle-Version: 0.1.0.qualifier
+Bundle-Activator: gov.va.isaac.mdht.otf.internal.Activator
+Bundle-Vendor: XMLmodeling.com
+Require-Bundle: org.eclipse.core.runtime,
+ org.ihtsdo.otf.tcc;visibility:=reexport,
+ org.ihtsdo.otf.query;visibility:=reexport
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-ActivationPolicy: lazy
+Export-Package: gov.va.isaac.mdht.otf.services

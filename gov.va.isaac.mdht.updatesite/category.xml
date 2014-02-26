@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/gov.va.isaac.mdht.otf.feature_0.1.0.qualifier.jar" id="gov.va.isaac.mdht.otf.feature" version="0.1.0.qualifier">
+      <category name="ISAAC"/>
+   </feature>
+   <feature url="features/org.ihtsdo.otf.tcc.feature_1.0.0.qualifier.jar" id="org.ihtsdo.otf.feature" version="1.0.0.qualifier">
+      <category name="ISAAC"/>
+   </feature>
+   <category-def name="ISAAC" label="ISAAC"/>
+</site>
