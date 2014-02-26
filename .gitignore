@@ -17,7 +17,6 @@ tmp/**/*
 local.properties
 .settings/
 .loadpath
-.project/
 .project
 .classpath
 

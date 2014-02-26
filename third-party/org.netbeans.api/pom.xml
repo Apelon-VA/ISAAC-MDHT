@@ -3,11 +3,11 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>gov.va.isaac.mdht</groupId>
+    <groupId>gov.va.isaac.mdht.modules</groupId>
     <artifactId>third-party</artifactId>
     <version>0.1.0-SNAPSHOT</version>
   </parent>
-  <groupId>gov.va.isaac.mdht</groupId>
+  <groupId>gov.va.isaac.mdht.modules.third-party.modules</groupId>
   <artifactId>org.netbeans.api</artifactId>
   <version>1.73.0-SNAPSHOT</version>
   <packaging>eclipse-plugin</packaging>
