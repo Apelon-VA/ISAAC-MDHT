@@ -25,10 +25,12 @@ import gov.va.isaac.mdht.otf.services.TerminologyStoreFactory;
 import gov.va.isaac.mdht.otf.services.TerminologyStoreService;
 import gov.va.isaac.mdht.otf.ui.dialogs.ConceptSearchDialog;
 import gov.va.isaac.mdht.otf.ui.internal.Activator;
+import gov.va.isaac.mdht.otf.ui.providers.DescriptionComparator;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -234,6 +236,9 @@ public class RelationshipSection extends AbstractPropertySection {
 			
 			ConceptVersionBI conceptModelAttribute = queryService.getConcept(CONCEPT_MODEL_ATTRIBUTE_UUID);
 			allConceptModelAttributes = queryService.getAllChildren(conceptModelAttribute);
+			
+			// sort by label
+			Collections.sort(allConceptModelAttributes, new DescriptionComparator());
 		}
 		
 		return allConceptModelAttributes;
@@ -384,6 +389,15 @@ public class RelationshipSection extends AbstractPropertySection {
 					@Override
 					protected String getOperationLabel() {
 						return "Set relationship type";
+					}
+
+					@Override
+					protected CellEditor getCellEditor(Object element) {
+						// refresh list if attributes have changed
+						allConceptModelAttributes = null;
+						setConceptList(getAllRelationshipTypes());
+						
+						return super.getCellEditor(element);
 					}
 
 					@Override

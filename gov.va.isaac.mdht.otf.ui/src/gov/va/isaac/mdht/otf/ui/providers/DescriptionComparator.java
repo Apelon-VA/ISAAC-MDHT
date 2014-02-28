@@ -16,32 +16,26 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *******************************************************************************/
-package gov.va.isaac.mdht.otf.ui.properties;
+package gov.va.isaac.mdht.otf.ui.providers;
 
-import java.util.List;
+import java.util.Comparator;
 
-import org.eclipse.jface.viewers.CellEditor;
-import org.eclipse.jface.viewers.ComboBoxCellEditor;
+import org.ihtsdo.otf.tcc.api.concept.ConceptChronicleBI;
 
-public abstract class ComboBoxEditingSupport extends OTFTableEditingSupport {
-	ComboBoxCellEditor comboBoxEditor = null;
-	private String[] itemArray = null;
+public class DescriptionComparator implements Comparator<ConceptChronicleBI> {
+
+	private ComponentLabelProvider labelProvider = new ComponentLabelProvider();
 	
-	public void setItemList(List<String> itemList) {
-		itemArray = new String[itemList.size()];
-		itemList.toArray(itemArray);
-	}
-
-	public ComboBoxEditingSupport(OTFTableViewer viewer, List<String> itemList) {
-		super(viewer);
-		setItemList(itemList);
-	}
-
 	@Override
-	protected CellEditor getCellEditor(final Object element) {
-		comboBoxEditor = new ComboBoxCellEditor(tableViewer.getTable(), itemArray);
+	public int compare(ConceptChronicleBI c1, ConceptChronicleBI c2) {
+		String label1 = labelProvider.getText(c1);
+		String label2 = labelProvider.getText(c2);
 		
-		return comboBoxEditor;
+		if (label1 != null && label2 != null) {
+			return label1.compareToIgnoreCase(label2);
+		}
+		
+		return 0;
 	}
-	
+
 }
