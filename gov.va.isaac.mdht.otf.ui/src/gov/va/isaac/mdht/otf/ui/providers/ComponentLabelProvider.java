@@ -121,6 +121,21 @@ public class ComponentLabelProvider extends LabelProvider implements ITableLabel
 					ConceptVersionBI source = queryService.getConcept(relationship.getSourceNid());
 					ConceptVersionBI target = queryService.getConcept(relationship.getTargetNid());
 					text = getText(source) + " -> " + getText(type) + " -> " + getText(target);
+					
+				} else if (element instanceof RefexVersionBI<?>) {
+					RefexVersionBI<?> refex = (RefexVersionBI<?>) element;
+					
+					// used as annotation
+//					if (refex instanceof RefexNidVersionBI<?>) {
+//						RefexNidVersionBI<?> nidRefex = (RefexNidVersionBI<?>) refex;
+//						int nidComponent1 = nidRefex.getNid1();
+//						ComponentVersionBI component1 = queryService.getComponent(nidComponent1);
+//						text = getText(component1);
+//					}
+//					else {
+						ConceptVersionBI refset = queryService.getConcept(refex.getAssemblageNid());
+						text = refset.getPreferredDescription().getText();
+//					}
 				}
 
 				if (obj instanceof ConceptItem) {
