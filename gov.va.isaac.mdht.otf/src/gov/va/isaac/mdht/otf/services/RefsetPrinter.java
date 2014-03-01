@@ -28,7 +28,10 @@ import org.ihtsdo.otf.tcc.api.description.DescriptionVersionBI;
 import org.ihtsdo.otf.tcc.api.refex.RefexChronicleBI;
 import org.ihtsdo.otf.tcc.api.refex.RefexType;
 import org.ihtsdo.otf.tcc.api.refex.RefexVersionBI;
+import org.ihtsdo.otf.tcc.api.refex.type_long.RefexLongVersionBI;
+import org.ihtsdo.otf.tcc.api.refex.type_nid.RefexNidVersionBI;
 import org.ihtsdo.otf.tcc.api.refex.type_nid_string.RefexNidStringVersionBI;
+import org.ihtsdo.otf.tcc.api.refex.type_string.RefexStringVersionBI;
 import org.ihtsdo.otf.tcc.api.relationship.RelationshipVersionBI;
 
 
@@ -109,9 +112,29 @@ public class RefsetPrinter {
 			System.out.println("Version #: " + (i + 1));
 			RefexVersionBI<?> member = (RefexVersionBI<?>)refsetChron.getVersions().toArray()[i];
 			ConceptVersionBI refCon = queryService.getConcept(member.getAssemblageNid());
-			
+
 			if (member.getRefexType() == RefexType.MEMBER) {
 				System.out.println(refCon.getPreferredDescription().getText() + " with Status: " + member.getStatus());
+			} else if (member.getRefexType() == RefexType.STR) {
+				RefexStringVersionBI<?> extensionMember = (RefexStringVersionBI<?>)member;
+				String strExt = extensionMember.getString1();
+
+				System.out.println(refCon.getPreferredDescription().getText() + " of STR Type with Status: " + member.getStatus());
+				System.out.println("Is extended with String: " + strExt);
+			} else if (member.getRefexType() == RefexType.LONG) {
+				RefexLongVersionBI<?> extensionMember = (RefexLongVersionBI<?>)member;
+				Long value = extensionMember.getLong1();
+
+				System.out.println(refCon.getPreferredDescription().getText() + " of LONG Type with Status: " + member.getStatus());
+				System.out.println("Is extended with Long: " + value);
+			} else if (member.getRefexType() == RefexType.CID) {
+				RefexNidVersionBI<?> extensionMember = (RefexNidVersionBI<?>)member;
+				int cidExtNid = extensionMember.getNid1();
+				ComponentVersionBI cidExtCon = queryService.getComponent(cidExtNid);
+				String componentLabel = getComponentLabel(cidExtCon);
+
+				System.out.println(refCon.getPreferredDescription().getText() + " of CID Type with Status: " + member.getStatus());
+				System.out.println("Is extended with CID: " + componentLabel);
 			} else if (member.getRefexType() == RefexType.CID_STR) {
 				RefexNidStringVersionBI<?> extensionMember = (RefexNidStringVersionBI<?>)member;
 				String strExt = extensionMember.getString1();
@@ -122,6 +145,9 @@ public class RefsetPrinter {
 				System.out.println(refCon.getPreferredDescription().getText() + " of CID_STR Type with Status: " + member.getStatus());
 				System.out.println("Is extended with CID: " + componentLabel + " and String: " + strExt);
 			} 
+			else {
+				System.out.println("Refex type: " + member.getRefexType());
+			}
 		} 
 	}
 
