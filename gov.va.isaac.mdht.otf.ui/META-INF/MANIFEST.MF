@@ -13,6 +13,7 @@ Require-Bundle: org.eclipse.core.runtime,
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.va.isaac.mdht.otf.ui.actions,
+ gov.va.isaac.mdht.otf.ui.dialogs,
  gov.va.isaac.mdht.otf.ui.filter,
  gov.va.isaac.mdht.otf.ui.properties,
  gov.va.isaac.mdht.otf.ui.providers,
