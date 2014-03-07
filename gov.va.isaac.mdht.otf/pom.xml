@@ -4,10 +4,10 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>gov.va.isaac.mdht</groupId>
-    <artifactId>isaac-parent</artifactId>
+    <artifactId>isaac-mdht-parent</artifactId>
     <version>0.1.0-SNAPSHOT</version>
   </parent>
-  <groupId>gov.va.isaac.mdht</groupId>
+  <groupId>gov.va.isaac.mdht.modules</groupId>
   <artifactId>gov.va.isaac.mdht.otf</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <packaging>eclipse-plugin</packaging>
