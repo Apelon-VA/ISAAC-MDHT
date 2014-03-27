@@ -19,11 +19,12 @@
 package gov.va.isaac.mdht.otf.ui.properties;
 
 
+import gov.va.isaac.mdht.otf.refset.RefsetAttributeType;
+import gov.va.isaac.mdht.otf.refset.RefsetMember;
 import gov.va.isaac.mdht.otf.services.ConceptBuilderService;
 import gov.va.isaac.mdht.otf.services.ConceptQueryService;
 import gov.va.isaac.mdht.otf.services.TerminologyStoreFactory;
 import gov.va.isaac.mdht.otf.services.TerminologyStoreService;
-import gov.va.isaac.mdht.otf.ui.dialogs.ConceptSearchDialog;
 import gov.va.isaac.mdht.otf.ui.internal.Activator;
 import gov.va.isaac.mdht.otf.ui.providers.ComponentLabelProvider;
 
@@ -34,21 +35,16 @@ import java.util.List;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.CellEditor;
-import org.eclipse.jface.viewers.DialogCellEditor;
 import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -61,7 +57,6 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.IWorkbenchPart;
@@ -78,7 +73,6 @@ import org.ihtsdo.otf.tcc.api.chronicle.ComponentVersionBI;
 import org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI;
 import org.ihtsdo.otf.tcc.api.contradiction.ContradictionException;
 import org.ihtsdo.otf.tcc.api.description.DescriptionVersionBI;
-import org.ihtsdo.otf.tcc.api.refex.RefexType;
 import org.ihtsdo.otf.tcc.api.refex.RefexVersionBI;
 import org.ihtsdo.otf.tcc.api.relationship.RelationshipVersionBI;
 
@@ -93,29 +87,29 @@ public class RefsetMemberSection extends AbstractPropertySection {
 	private ConceptQueryService queryService = TerminologyStoreFactory.INSTANCE.createConceptQueryService();
 	private ConceptBuilderService builderService = TerminologyStoreFactory.INSTANCE.createConceptBuilderService();
 	
-	private LabelProvider labelProvider = new ComponentLabelProvider();
+	private LabelProvider labelProvider = new ComponentLabelProvider(true);
 	
 	protected ConceptVersionBI conceptVersion;
 	
 	private boolean dirty = false;
 	
-	private List<RefexCAB> newMembers = new ArrayList<RefexCAB>();
+	private List<RefsetMember> newMembers = new ArrayList<RefsetMember>();
 	
-	private OTFTableViewer refexViewer = null;
+	private GenericRefexTableViewer refexViewer = null;
 	
 	private boolean isAnnotationStyle = false;
 
 	private Button annotationStyleButton = null;
 	
-	private enum MemberKinds {
-		Concept, Description, Relationship
-	};
-	
-	private MemberKinds memberKind = MemberKinds.Concept;
+	private RefsetAttributeType referencedComponentKind = RefsetAttributeType.Concept;
+
+	private RefsetAttributeType valueKind = RefsetAttributeType.String;
 
 	private Button conceptKindButton = null;
 	private Button descriptionKindButton = null;
 	private Button relationshipKindButton = null;
+
+	private CCombo valueKindButton = null;
 	
 	private Button addButton = null;
 
@@ -123,68 +117,55 @@ public class RefsetMemberSection extends AbstractPropertySection {
 
 	private Button editButton = null;
 
+	private Button saveButton = null;
+	
+	/**
+	 * Create blueprint and build chronicle
+	 */
 	private void buildAndCommit() {
-		try {
-			dirty = false;
-			
-			// build chronicle for any blueprints
-			for (RefexCAB refex : newMembers) {
-				refex.recomputeUuid();
-				builderService.construct(refex);
+		List<RefsetMember> newMembersCopy = new ArrayList<RefsetMember>(newMembers);
+		for (RefsetMember refsetMember : newMembersCopy) {
+			try {
+				refsetMember.validateRefex();
+			} catch (Exception e) {
+				MessageDialog.open(MessageDialog.ERROR, getPart().getSite().getShell(), 
+						"Invalid Refex", e.getMessage(), SWT.NONE);
+				continue;
 			}
-			
+
+			try {
+				RefexCAB refexCAB = refsetMember.createBlueprint();
+				refexCAB.recomputeUuid();
+				builderService.construct(refexCAB);
+				newMembers.remove(refsetMember);
+
+			} catch (IOException | ContradictionException | InvalidCAB e) {
+				StatusManager.getManager().handle(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "Cannot build Refex version", e), 
+						StatusManager.SHOW | StatusManager.LOG);
+			}
+		}
+
+		try {
 			// commit enclosing concept
 			storeService.addUncommitted(conceptVersion);
+			if (newMembers.isEmpty()) {
+				dirty = false;
+			}
 			
-		} catch (IOException | ContradictionException | InvalidCAB e) {
+		} catch (IOException e) {
 			StatusManager.getManager().handle(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "Cannot commit refset member(s)", e), 
 					StatusManager.SHOW | StatusManager.LOG);
 		}
 	}
 	
-	private ComponentVersionBI getMemberComponent() {
-		ComponentVersionBI component = null;
-		
-		if (memberKind == MemberKinds.Concept) {
-			ConceptSearchDialog searchDialog = new ConceptSearchDialog(getPart().getSite().getShell());
-			int result = searchDialog.open();
-			if (Dialog.OK == result && searchDialog.getResult().length == 1) {
-				component = (ConceptVersionBI) searchDialog.getResult()[0];
-			}
-		}
-		
-		if (component == null) {
-			// prompt for component UUID
-			InputDialog inputDialog = new InputDialog(
-				getPart().getSite().getShell(), "Component UUID", "Enter member " + memberKind.toString() + " UUID", "", null);
-			if (inputDialog.open() == Window.OK) {
-				String uuidString = inputDialog.getValue();
-				if (uuidString != null && uuidString.length() > 0) {
-					component = queryService.getComponent(uuidString);
-				}
-			}
-		}
-		
-		if (component != null) {
-			if ((MemberKinds.Concept == memberKind && !(component instanceof ConceptVersionBI))
-					|| (MemberKinds.Description == memberKind && !(component instanceof DescriptionVersionBI))
-					|| (MemberKinds.Relationship == memberKind && !(component instanceof RelationshipVersionBI))) {
-				
-				component = null;
-				MessageDialog.open(IStatus.ERROR, getPart().getSite().getShell(), "Invalid Member", "Member must be a " + memberKind.toString(), SWT.NONE);
-			}
-		}
-		
-		return component;
-	}
-	
 	private void addMember() {
 		try {
-			ComponentVersionBI component = getMemberComponent();
+			ComponentVersionBI component = refexViewer.getMemberComponent(referencedComponentKind);
 			
 			if (component != null) {
-				RefexCAB refex = builderService.createRefex(conceptVersion, component);
-				newMembers.add(refex);
+				RefsetMember member = new RefsetMember(conceptVersion);
+				member.setReferencedComponent(component);
+				newMembers.add(member);
 			}
 			
 		} catch (Exception e) {
@@ -224,7 +205,7 @@ public class RefsetMemberSection extends AbstractPropertySection {
 //			}
 			retireMember(refex);
 
-			RefexCAB modified = builderService.modifyRefex(refex);
+			RefsetMember modified = new RefsetMember(refex);
 			newMembers.add(modified);
 
 		} catch (Exception e) {
@@ -285,7 +266,7 @@ public class RefsetMemberSection extends AbstractPropertySection {
 			}
 		});
 		
-		conceptKindButton = getWidgetFactory().createButton(optionsComposite, MemberKinds.Concept.toString(), SWT.RADIO);
+		conceptKindButton = getWidgetFactory().createButton(optionsComposite, RefsetAttributeType.Concept.toString(), SWT.RADIO);
 		conceptKindButton.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
@@ -295,12 +276,12 @@ public class RefsetMemberSection extends AbstractPropertySection {
 			@Override
 			public void widgetDefaultSelected(SelectionEvent event) {
 				if (conceptKindButton.getSelection()) {
-					memberKind = MemberKinds.Concept;
+					referencedComponentKind = RefsetAttributeType.Concept;
 				}
 			}
 		});
 		
-		descriptionKindButton = getWidgetFactory().createButton(optionsComposite, MemberKinds.Description.toString(), SWT.RADIO);
+		descriptionKindButton = getWidgetFactory().createButton(optionsComposite, RefsetAttributeType.Description.toString(), SWT.RADIO);
 		descriptionKindButton.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
@@ -310,12 +291,12 @@ public class RefsetMemberSection extends AbstractPropertySection {
 			@Override
 			public void widgetDefaultSelected(SelectionEvent event) {
 				if (descriptionKindButton.getSelection()) {
-					memberKind = MemberKinds.Description;
+					referencedComponentKind = RefsetAttributeType.Description;
 				}
 			}
 		});
 		
-		relationshipKindButton = getWidgetFactory().createButton(optionsComposite, MemberKinds.Relationship.toString(), SWT.RADIO);
+		relationshipKindButton = getWidgetFactory().createButton(optionsComposite, RefsetAttributeType.Relationship.toString(), SWT.RADIO);
 		relationshipKindButton.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
@@ -325,7 +306,36 @@ public class RefsetMemberSection extends AbstractPropertySection {
 			@Override
 			public void widgetDefaultSelected(SelectionEvent event) {
 				if (relationshipKindButton.getSelection()) {
-					memberKind = MemberKinds.Relationship;
+					referencedComponentKind = RefsetAttributeType.Relationship;
+				}
+			}
+		});
+
+		valueKindButton = getWidgetFactory().createCCombo(optionsComposite, SWT.BORDER | SWT.READ_ONLY);
+		for (RefsetAttributeType attrType : RefsetMember.getPrimitiveTypes()) {
+			valueKindButton.add(attrType.name());
+		}
+		valueKindButton.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent event) {
+				widgetDefaultSelected(event);
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent event) {
+				RefsetAttributeType attributeType = null;
+				try {
+					String selectedKind = valueKindButton.getText();
+					attributeType = RefsetAttributeType.valueOf(selectedKind);
+				}
+				catch (Exception e) {
+					// should not occur for selected type
+				}
+				if (attributeType != null) {
+					valueKind = attributeType;
+					refexViewer.getColumnTypes()[1] = attributeType;
+					refexViewer.getColumnTitles()[1] = attributeType.name();
+					refexViewer.updateColumns();
 				}
 			}
 		});
@@ -334,9 +344,6 @@ public class RefsetMemberSection extends AbstractPropertySection {
 		data.left = new FormAttachment(0, 0);
 		data.top = new FormAttachment(0, 0);
 		annotationStyleButton.setLayoutData(data);
-		
-		//TODO until tested to work
-		annotationStyleButton.setEnabled(false);
 		
 		Label memberKindLabel = getWidgetFactory().createLabel(optionsComposite, "Member Kind: ");
 		data = new FormData();
@@ -358,6 +365,17 @@ public class RefsetMemberSection extends AbstractPropertySection {
 		data.left = new FormAttachment(descriptionKindButton, 0);
 		data.top = new FormAttachment(annotationStyleButton, 0);
 		relationshipKindButton.setLayoutData(data);
+
+		Label valueTypeLabel = getWidgetFactory().createLabel(optionsComposite, "Value Type: ");
+		data = new FormData();
+		data.left = new FormAttachment(0, 0);
+		data.top = new FormAttachment(conceptKindButton, 0);
+		valueTypeLabel.setLayoutData(data);
+
+		data = new FormData();
+		data.left = new FormAttachment(valueTypeLabel, 0);
+		data.top = new FormAttachment(conceptKindButton, 0);
+		valueKindButton.setLayoutData(data);
 
 		/*
 		 * Definition tab
@@ -442,6 +460,18 @@ public class RefsetMemberSection extends AbstractPropertySection {
 			}
 		});
 
+		saveButton = getWidgetFactory().createButton(membersComposite, null, SWT.PUSH);
+		Image saveImage = Activator.getDefault().getBundledImage("icons/eview16/save.gif");
+		saveButton.setImage(saveImage);
+		saveButton.setToolTipText("Save all changes");
+		saveButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent event) {
+				buildAndCommit();
+				refexViewer.refresh();
+			}
+		});
+
 		data = new FormData();
 		data.left = new FormAttachment(0, 0);
 		data.top = new FormAttachment(0, 0);
@@ -456,6 +486,11 @@ public class RefsetMemberSection extends AbstractPropertySection {
 		data.left = new FormAttachment(0, 0);
 		data.top = new FormAttachment(removeButton, 0);
 		editButton.setLayoutData(data);
+
+		data = new FormData();
+		data.left = new FormAttachment(0, 0);
+		data.top = new FormAttachment(editButton, 0);
+		saveButton.setLayoutData(data);
 		
 		Table table = getWidgetFactory().createTable(membersComposite, SWT.V_SCROLL | SWT.MULTI | SWT.FULL_SELECTION);
 		data = new FormData();
@@ -465,7 +500,18 @@ public class RefsetMemberSection extends AbstractPropertySection {
 		data.bottom = new FormAttachment(100, 0);
 		table.setLayoutData(data);
 
-		refexViewer = new OTFTableViewer(table) {
+		refexViewer = new GenericRefexTableViewer(table) {
+			@Override
+		    protected RefsetAttributeType[] getColumnTypes() {
+		    	RefsetAttributeType[] memberKinds = { referencedComponentKind, valueKind, RefsetAttributeType.Concept, RefsetAttributeType.Concept, RefsetAttributeType.Concept };
+		        return memberKinds;
+		    }
+
+			@Override
+			protected IWorkbenchPart getActivePart() {
+				return getPart();
+			}
+
 			@Override
 			protected void fireSelectionChanged(SelectionChangedEvent event) {
 				super.fireSelectionChanged(event);
@@ -473,7 +519,8 @@ public class RefsetMemberSection extends AbstractPropertySection {
 				boolean enabled = !event.getSelection().isEmpty();
 				Object selection = ((IStructuredSelection)event.getSelection()).getFirstElement();	
 				removeButton.setEnabled(enabled);
-				editButton.setEnabled(enabled && !(selection instanceof CreateOrAmendBlueprint));
+				editButton.setEnabled(enabled && !(selection instanceof CreateOrAmendBlueprint)
+						&& !(selection instanceof RefsetMember));
 			}
 
 			@Override
@@ -489,19 +536,19 @@ public class RefsetMemberSection extends AbstractPropertySection {
 								RefexVersionBI<?> member = (RefexVersionBI<?>) members.get(0);
 								ComponentVersionBI component = queryService.getComponent(member.getReferencedComponentNid());
 								if (component instanceof ConceptVersionBI) {
-									memberKind = MemberKinds.Concept;
+									referencedComponentKind = RefsetAttributeType.Concept;
 									conceptKindButton.setSelection(true);
 									descriptionKindButton.setSelection(false);
 									relationshipKindButton.setSelection(false);
 								}
 								else if (component instanceof DescriptionVersionBI) {
-									memberKind = MemberKinds.Description;
+									referencedComponentKind = RefsetAttributeType.Description;
 									descriptionKindButton.setSelection(true);
 									conceptKindButton.setSelection(false);
 									relationshipKindButton.setSelection(false);
 								}
 								else if (component instanceof RelationshipVersionBI) {
-									memberKind = MemberKinds.Relationship;
+									referencedComponentKind = RefsetAttributeType.Relationship;
 									relationshipKindButton.setSelection(true);
 									conceptKindButton.setSelection(false);
 									descriptionKindButton.setSelection(false);
@@ -518,6 +565,7 @@ public class RefsetMemberSection extends AbstractPropertySection {
 							}
 							
 							members.addAll(newMembers);
+							saveButton.setEnabled(!newMembers.isEmpty());
 							
 							return members.toArray();
 							
@@ -543,75 +591,14 @@ public class RefsetMemberSection extends AbstractPropertySection {
 							removeButton.setEnabled(false);
 							editButton.setEnabled(false);
 						}
+
+						if (!saveButton.isDisposed()) {
+							saveButton.setEnabled(!newMembers.isEmpty());
+						}
 					}
 		        	
 		        };
 			}
-
-			@Override
-		    protected void createColumns() {
-		        String[] titles = { "Component" };
-		        int[] bounds = { 500 };
-		
-		        TableViewerColumn memberColumn = createTableViewerColumn(titles[0], bounds[0], 0);
-		        
-		        memberColumn.setEditingSupport(new OTFTableEditingSupport(this) {
-		        	private DialogCellEditor dialogCellEditor = null;
-		        	
-					@Override
-					protected String getOperationLabel() {
-						return "Set refset component";
-					}
-
-					@Override
-					protected CellEditor getCellEditor(final Object element) {
-						dialogCellEditor = new DialogCellEditor(tableViewer.getTable()) {
-							@Override
-							protected Object openDialogBox(Control cellEditorWindow) {
-								ComponentVersionBI component = getMemberComponent();
-								return component;
-							}
-						};
-						
-						return dialogCellEditor;
-					}
-
-					@Override
-					protected IStatus doSetValue(Object element, Object value) {
-						Object dialogValue = dialogCellEditor.getValue();
-						if (dialogValue instanceof ComponentVersionBI && element instanceof RefexCAB) {
-							RefexCAB refex = (RefexCAB) element;
-							ComponentVersionBI referencedComponent = (ComponentVersionBI) dialogValue;
-
-							try {
-								RefexCAB editedRefex = new RefexCAB(RefexType.MEMBER, referencedComponent.getPrimordialUuid(), refex.getRefexCollectionUuid(), 
-										IdDirective.GENERATE_HASH, RefexDirective.INCLUDE);
-								newMembers.remove(refex);
-								newMembers.add(editedRefex);
-								
-								refexViewer.refresh();
-								
-							} catch (IOException | InvalidCAB | ContradictionException e) {
-								StatusManager.getManager().handle(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "Cannot set refset member value", e), 
-										StatusManager.SHOW | StatusManager.LOG);
-							}
-						}
-
-						return Status.OK_STATUS;
-					}
-
-					@Override
-					protected Object getValue(Object element) {
-						RefexCAB refex = (RefexCAB) element;
-						ComponentVersionBI referencedComponent = queryService.getComponent(refex.getReferencedComponentUuid());
-						if (referencedComponent != null) {
-							return labelProvider.getText(referencedComponent);
-						}
-
-						return null;
-					}
-		        });
-		    }
 		};
 
 	}
@@ -625,7 +612,7 @@ public class RefsetMemberSection extends AbstractPropertySection {
 		}
 		
 		conceptVersion = null;
-		newMembers = new ArrayList<RefexCAB>();
+		newMembers = new ArrayList<RefsetMember>();
 		
 		Object selected = ((IStructuredSelection)selection).getFirstElement();
 		if (selected instanceof ConceptVersionBI) {

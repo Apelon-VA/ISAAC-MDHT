@@ -10,4 +10,5 @@ Require-Bundle: org.eclipse.core.runtime,
  org.ihtsdo.otf.query;visibility:=reexport
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
-Export-Package: gov.va.isaac.mdht.otf.services
+Export-Package: gov.va.isaac.mdht.otf.refset,
+ gov.va.isaac.mdht.otf.services

@@ -18,6 +18,9 @@
  *******************************************************************************/
 package gov.va.isaac.mdht.otf.ui.properties;
 
+import gov.va.isaac.mdht.otf.refset.RefsetAttributeType;
+import gov.va.isaac.mdht.otf.refset.RefsetMember;
+
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.EditingSupport;
@@ -27,15 +30,21 @@ public abstract class OTFTableEditingSupport extends EditingSupport {
 	
 	protected OTFTableViewer tableViewer = null;
 	protected CellEditor cellEditor = null;
+	protected RefsetAttributeType attributeType = null;
 
-	public OTFTableEditingSupport(OTFTableViewer viewer) {
+	public OTFTableEditingSupport(OTFTableViewer viewer, RefsetAttributeType attributeType) {
 		super(viewer);
 		this.tableViewer = viewer;
+		this.attributeType = attributeType;
+	}
+
+	public OTFTableEditingSupport(OTFTableViewer viewer) {
+		this(viewer, null);
 	}
 
 	@Override
 	protected boolean canEdit(Object element) {
-		return element instanceof CreateOrAmendBlueprint;
+		return element instanceof CreateOrAmendBlueprint || element instanceof RefsetMember;
 	}
 
 	@Override
@@ -43,6 +52,14 @@ public abstract class OTFTableEditingSupport extends EditingSupport {
 
 		doSetValue(element, value);
 		tableViewer.update(element, null);
+	}
+
+	public RefsetAttributeType getAttributeType() {
+		return attributeType;
+	}
+	
+	public void setAttributeType(RefsetAttributeType attributeType) {
+		this.attributeType = attributeType;
 	}
 	
 	protected abstract String getOperationLabel();

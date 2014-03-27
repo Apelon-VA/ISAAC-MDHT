@@ -18,6 +18,7 @@
  *******************************************************************************/
 package gov.va.isaac.mdht.otf.ui.providers;
 
+import gov.va.isaac.mdht.otf.refset.RefsetMember;
 import gov.va.isaac.mdht.otf.services.ConceptQueryService;
 import gov.va.isaac.mdht.otf.services.TerminologyStoreFactory;
 import gov.va.isaac.mdht.otf.ui.internal.Activator;
@@ -32,14 +33,15 @@ import org.eclipse.ui.statushandlers.StatusManager;
 import org.ihtsdo.otf.tcc.api.blueprint.ConceptCB;
 import org.ihtsdo.otf.tcc.api.blueprint.CreateOrAmendBlueprint;
 import org.ihtsdo.otf.tcc.api.blueprint.DescriptionCAB;
-import org.ihtsdo.otf.tcc.api.blueprint.RefexCAB;
 import org.ihtsdo.otf.tcc.api.blueprint.RelationshipCAB;
 import org.ihtsdo.otf.tcc.api.chronicle.ComponentBI;
 import org.ihtsdo.otf.tcc.api.chronicle.ComponentChronicleBI;
 import org.ihtsdo.otf.tcc.api.chronicle.ComponentVersionBI;
 import org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI;
 import org.ihtsdo.otf.tcc.api.description.DescriptionVersionBI;
+import org.ihtsdo.otf.tcc.api.refex.RefexType;
 import org.ihtsdo.otf.tcc.api.refex.RefexVersionBI;
+import org.ihtsdo.otf.tcc.api.refex.type_nid.RefexNidVersionBI;
 import org.ihtsdo.otf.tcc.api.relationship.RelationshipVersionBI;
 
 public class ComponentLabelProvider extends LabelProvider implements ITableLabelProvider {
@@ -55,24 +57,27 @@ public class ComponentLabelProvider extends LabelProvider implements ITableLabel
 	public ComponentLabelProvider(boolean useFSN) {
 		this.useFSN = useFSN;
 	}
-	
+
 	protected Object unwrap(Object object) {
 		ComponentBI component = null;
-		CreateOrAmendBlueprint blueprint = null;
+		Object value = null;
 		
 		if (object instanceof ComponentBI) {
 			component = (ComponentBI) object;
+		} else if (object instanceof RefsetMember) {
+			value = (RefsetMember) object;
 		} else if (object instanceof CreateOrAmendBlueprint) {
-			blueprint = (CreateOrAmendBlueprint) object;
+			value = (CreateOrAmendBlueprint) object;
 		} else if (object instanceof IAdaptable) {
-			blueprint = (CreateOrAmendBlueprint) ((IAdaptable) object).getAdapter(CreateOrAmendBlueprint.class);
-			if (blueprint == null) {
+			value = (CreateOrAmendBlueprint) ((IAdaptable) object).getAdapter(CreateOrAmendBlueprint.class);
+			if (value == null) {
 				component = (ComponentBI) ((IAdaptable) object).getAdapter(ComponentBI.class);
 			}
+		} else {
+			value = object;
 		}
 		
-		// if object is both blueprint and component, return blueprint for editing
-		return blueprint != null ? blueprint : component;
+		return value != null ? value : component;
 	}
 	
 	@Override
@@ -137,6 +142,30 @@ public class ComponentLabelProvider extends LabelProvider implements ITableLabel
 						text = refset.getPreferredDescription().getText();
 //					}
 				}
+				else if (element instanceof RefsetMember) {
+					RefsetMember refex = (RefsetMember) element;
+					ConceptVersionBI refset = refex.getRefsetConcept();
+					if (refset != null) {
+						text = refset.getPreferredDescription().getText();
+					}
+				}
+				
+				// following are used for Refex values
+				else if (element instanceof String) {
+					text = (String) element;
+				}
+				else if (element instanceof Boolean) {
+					text = ((Boolean) element).toString();
+				}
+				else if (element instanceof Integer) {
+					text = ((Integer) element).toString();
+				}
+				else if (element instanceof Long) {
+					text = ((Long) element).toString();
+				}
+				else if (element instanceof Float) {
+					text = ((Float) element).toString();
+				}
 
 				if (obj instanceof ConceptItem) {
 					((ConceptItem)obj).setLabel(text);
@@ -154,7 +183,7 @@ public class ComponentLabelProvider extends LabelProvider implements ITableLabel
 	public Image getImage(Object obj) {
 		Object element = unwrap(obj);
 
-		if (element instanceof CreateOrAmendBlueprint) {
+		if (element instanceof CreateOrAmendBlueprint || element instanceof RefsetMember) {
 			return Activator.getDefault().getBundledImage("icons/obj16/Blueprint.gif");
 		}
 		else if (element instanceof ComponentChronicleBI && ((ComponentChronicleBI<?>)element).isUncommitted()) {
@@ -188,6 +217,9 @@ public class ComponentLabelProvider extends LabelProvider implements ITableLabel
 				RefexVersionBI<?> refex = (RefexVersionBI<?>) element;
 				ComponentVersionBI referencedComponent = queryService.getComponent(refex.getReferencedComponentNid());
 				return getImage(referencedComponent);
+			}
+			else if (element instanceof RefsetMember) {
+				return Activator.getDefault().getBundledImage("icons/obj16/Blueprint.gif");
 			}
 		}
 		
@@ -273,18 +305,24 @@ public class ComponentLabelProvider extends LabelProvider implements ITableLabel
 	
 				switch (columnIndex) {
 					case 0: {
-						return getText(queryService.getComponent(refex.getReferencedComponentNid()));
+						if (RefexType.MEMBER == refex.getRefexType()) {
+							return getText(queryService.getComponent(refex.getReferencedComponentNid()));
+						}
+						else if (refex instanceof RefexNidVersionBI<?>) {
+							RefexNidVersionBI<?> nidRefex = (RefexNidVersionBI<?>) refex;
+							return getText(queryService.getComponent(nidRefex.getNid1()));
+						}
 					}
 					default:
 						return null;
 				}
 			}
-			else if (element instanceof RefexCAB) {
-				RefexCAB refex = (RefexCAB) element;
+			else if (element instanceof RefsetMember) {
+				RefsetMember refex = (RefsetMember) element;
 	
 				switch (columnIndex) {
 					case 0: {
-						return getText(queryService.getComponent(refex.getReferencedComponentUuid()));
+						return getText(refex.getReferencedComponent());
 					}
 					default:
 						return null;

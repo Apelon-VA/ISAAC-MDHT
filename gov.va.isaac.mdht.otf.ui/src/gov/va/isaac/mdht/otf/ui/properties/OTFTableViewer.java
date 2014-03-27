@@ -51,10 +51,24 @@ public abstract class OTFTableViewer extends TableViewer {
 	        setLabelProvider(labelProvider);
 	    }
 
+		public IContentProvider getContentProvider() {
+			if (contentProvider == null) {
+				contentProvider = createContentProvider();
+			}
+			return contentProvider;
+		}
+
 		protected IContentProvider createContentProvider() {
 			return new ConceptContentProvider();
 		}
-	
+
+		public ILabelProvider getLabelProvider() {
+			if (labelProvider == null) {
+				labelProvider = createLabelProvider();
+			}
+			return labelProvider;
+		}
+
 		protected ILabelProvider createLabelProvider() {
 			return new ComponentLabelProvider();
 		}

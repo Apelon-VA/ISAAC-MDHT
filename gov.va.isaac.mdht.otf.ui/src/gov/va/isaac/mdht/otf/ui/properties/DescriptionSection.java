@@ -41,6 +41,8 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
@@ -183,7 +185,8 @@ public class DescriptionSection extends AbstractPropertySection {
 	public void createControls(final Composite parent, final TabbedPropertySheetPage aTabbedPropertySheetPage) {
 		super.createControls(parent, aTabbedPropertySheetPage);
 
-		Composite composite = getWidgetFactory().createGroup(parent, "Descriptions");
+//		Composite composite = getWidgetFactory().createGroup(parent, "Descriptions");
+		Composite composite = getWidgetFactory().createComposite(parent, SWT.NONE);
 		FormLayout layout = new FormLayout();
 		layout.marginWidth = ITabbedPropertyConstants.HSPACE;
 		layout.marginHeight = ITabbedPropertyConstants.VSPACE;
@@ -257,14 +260,37 @@ public class DescriptionSection extends AbstractPropertySection {
 		data.left = new FormAttachment(0, 0);
 		data.top = new FormAttachment(removeButton, 0);
 		editButton.setLayoutData(data);
+
+//		final Composite tableComposite = getWidgetFactory().createComposite(composite, SWT.NONE);
+//		final ScrolledComposite tableComposite = new ScrolledComposite(composite, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
+//		tableComposite.setExpandHorizontal(true);
+//		tableComposite.setExpandVertical(true);
 		
-		Table table = getWidgetFactory().createTable(composite, SWT.V_SCROLL | SWT.MULTI | SWT.FULL_SELECTION);
+//		data = new FormData();
+//		data.left = new FormAttachment(addButton, 0);
+//		data.right = new FormAttachment(100, 0);
+//		data.top = new FormAttachment(0, 0);
+//		data.bottom = new FormAttachment(100, 0);
+//		tableComposite.setLayoutData(data);
+		
+		final Table table = getWidgetFactory().createTable(composite, SWT.V_SCROLL | SWT.MULTI | SWT.FULL_SELECTION);
 		data = new FormData();
 		data.left = new FormAttachment(addButton, 0);
 		data.right = new FormAttachment(100, 0);
 		data.top = new FormAttachment(0, 0);
 		data.bottom = new FormAttachment(100, 0);
 		table.setLayoutData(data);
+
+//		tableComposite.setContent(table);
+//		tableComposite.setMinSize(table.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+
+//		tableComposite.addControlListener(
+//				new ControlAdapter() {
+//					public void controlResized(ControlEvent e) {
+//						tableComposite.layout();
+//						table.setSize(tableComposite.getSize());
+//					}
+//				});
 
 		descriptionViewer = new OTFTableViewer(table) {
 			@Override
