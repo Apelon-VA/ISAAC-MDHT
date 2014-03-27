@@ -19,6 +19,7 @@
 package gov.va.isaac.mdht.otf.services;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Collection;
 
 import org.ihtsdo.otf.tcc.api.chronicle.ComponentVersionBI;
@@ -26,11 +27,14 @@ import org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI;
 import org.ihtsdo.otf.tcc.api.contradiction.ContradictionException;
 import org.ihtsdo.otf.tcc.api.description.DescriptionVersionBI;
 import org.ihtsdo.otf.tcc.api.refex.RefexChronicleBI;
-import org.ihtsdo.otf.tcc.api.refex.RefexType;
 import org.ihtsdo.otf.tcc.api.refex.RefexVersionBI;
+import org.ihtsdo.otf.tcc.api.refex.type_boolean.RefexBooleanVersionBI;
+import org.ihtsdo.otf.tcc.api.refex.type_float.RefexFloatVersionBI;
+import org.ihtsdo.otf.tcc.api.refex.type_int.RefexIntVersionBI;
 import org.ihtsdo.otf.tcc.api.refex.type_long.RefexLongVersionBI;
 import org.ihtsdo.otf.tcc.api.refex.type_nid.RefexNidVersionBI;
-import org.ihtsdo.otf.tcc.api.refex.type_nid_string.RefexNidStringVersionBI;
+import org.ihtsdo.otf.tcc.api.refex.type_nid_nid.RefexNidNidVersionBI;
+import org.ihtsdo.otf.tcc.api.refex.type_nid_nid_nid.RefexNidNidNidVersionBI;
 import org.ihtsdo.otf.tcc.api.refex.type_string.RefexStringVersionBI;
 import org.ihtsdo.otf.tcc.api.relationship.RelationshipVersionBI;
 
@@ -42,120 +46,123 @@ public class RefsetPrinter {
 	private TerminologyStoreService storeService = TerminologyStoreFactory.INSTANCE.createTerminologyStoreService();
 	private ConceptQueryService queryService = TerminologyStoreFactory.INSTANCE.createConceptQueryService();
 	
-	public RefsetPrinter() {
-
+	private PrintStream output = null;
+	
+	public RefsetPrinter(PrintStream output) {
+		this.output = output;
 	}
 
 	public void printMembers(ConceptVersionBI concept) {
 		try {
-			System.out.println();
-			System.out.println("******** Refset Members **********");
+			output.println();
+			output.println("******** Refset Members **********");
 			printRefsetMembers(concept);
 
-			System.out.println();
-			System.out.println("******** Annotated Members **********");
-			printAnnotatedRefsetMembers(concept);
+			output.println();
+			output.println("******** Refset Annotations **********");
+			printAnnotations(concept);
 	
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	private void printAnnotatedRefsetMembers(ConceptVersionBI concept) throws Exception {
-		System.out.println("Refset Concept: " + concept.getPreferredDescription().getText());
-		Collection<? extends RefexChronicleBI<?>> members = concept.getAnnotations();
-		Collection<? extends RefexVersionBI<?>> activeMembers = concept.getAnnotationsActive(storeService.getSnomedStatedLatest());
-		System.out.println("With " + members.size() + " Annotation Members, "+ activeMembers.size() + " active:");
-		
-		for (RefexChronicleBI<?> rChron : members) {
-			printAllVersionsOfAnnotated(rChron);
-		}
-	}
-
 	private void printRefsetMembers(ConceptVersionBI concept) throws Exception {
-		System.out.println("Refset Concept: " + concept.getPreferredDescription().getText());
 		Collection<? extends RefexChronicleBI<?>> members = concept.getRefsetMembers();
 		Collection<? extends RefexVersionBI<?>> activeMembers = concept.getRefsetMembersActive();
 		
-		System.out.println("With " + members.size() + " Members, "+ activeMembers.size() + " active:");
+		output.println("Has " + members.size() + " Members, "+ activeMembers.size() + " active:");
 		
-		for (RefexChronicleBI<?> rChron : members) {
-			System.out.println();
-			printAllVersionsOfMember(rChron);
+		for (RefexChronicleBI<?> member : members) {
+			printAllVersions(member);
 		}
 	}
 
-	public void printAllVersionsOfMember(RefexChronicleBI<?> refsetChron) throws Exception {
-		int i = 1;
-		for (RefexVersionBI<?> member : refsetChron.getVersions()) {
-			System.out.println("Version #: " + i++);
-			ComponentVersionBI refComp = queryService.getComponent(member.getReferencedComponentNid());
-			 
-			if (member.getRefexType() == RefexType.MEMBER) {
-				System.out.println(getComponentLabel(refComp) + " with Status: " + member.getStatus());
-				
-			} else if (member.getRefexType() == RefexType.CID_STR) {
-				RefexNidStringVersionBI<?> extensionMember = (RefexNidStringVersionBI<?>)member;
-				String strExt = extensionMember.getString1();
-				int cidExtNid = extensionMember.getNid1();
-				ComponentVersionBI cidExtCon = queryService.getComponent(cidExtNid);
-				String componentLabel = getComponentLabel(cidExtCon);
-
-				System.out.println(getComponentLabel(refComp) + " of Member Type with Status: " + member.getStatus());
-				System.out.println("Is extended with CID: " + componentLabel + " and String: " + strExt);
-			} 
+	private void printAnnotations(ConceptVersionBI concept) throws Exception {
+		Collection<? extends RefexChronicleBI<?>> annotations = concept.getAnnotations();
+		Collection<? extends RefexVersionBI<?>> activeAnnotations = concept.getAnnotationsActive(storeService.getSnomedStatedLatest());
+		
+		output.println("Has " + annotations.size() + " Annotations, "+ activeAnnotations.size() + " active:");
+		
+		for (RefexChronicleBI<?> rChron : annotations) {
+			printAllVersions(rChron);
 		}
 	}
 
-	public void printAllVersionsOfAnnotated(RefexChronicleBI<?> refsetChron) throws Exception {
+	public void printAllVersions(RefexChronicleBI<?> refsetChron) throws Exception {
 		for (int i = 0; i < refsetChron.getVersions().size(); i++) {
-			System.out.println("Version #: " + (i + 1));
-			RefexVersionBI<?> member = (RefexVersionBI<?>)refsetChron.getVersions().toArray()[i];
-			ConceptVersionBI refCon = queryService.getConcept(member.getAssemblageNid());
-
-			if (member.getRefexType() == RefexType.MEMBER) {
-				System.out.println(refCon.getPreferredDescription().getText() + " with Status: " + member.getStatus());
-			} else if (member.getRefexType() == RefexType.STR) {
-				RefexStringVersionBI<?> extensionMember = (RefexStringVersionBI<?>)member;
-				String strExt = extensionMember.getString1();
-
-				System.out.println(refCon.getPreferredDescription().getText() + " of STR Type with Status: " + member.getStatus());
-				System.out.println("Is extended with String: " + strExt);
-			} else if (member.getRefexType() == RefexType.LONG) {
-				RefexLongVersionBI<?> extensionMember = (RefexLongVersionBI<?>)member;
-				Long value = extensionMember.getLong1();
-
-				System.out.println(refCon.getPreferredDescription().getText() + " of LONG Type with Status: " + member.getStatus());
-				System.out.println("Is extended with Long: " + value);
-			} else if (member.getRefexType() == RefexType.CID) {
-				RefexNidVersionBI<?> extensionMember = (RefexNidVersionBI<?>)member;
-				int cidExtNid = extensionMember.getNid1();
-				ComponentVersionBI cidExtCon = queryService.getComponent(cidExtNid);
-				String componentLabel = getComponentLabel(cidExtCon);
-
-				System.out.println(refCon.getPreferredDescription().getText() + " of CID Type with Status: " + member.getStatus());
-				System.out.println("Is extended with CID: " + componentLabel);
-			} else if (member.getRefexType() == RefexType.CID_STR) {
-				RefexNidStringVersionBI<?> extensionMember = (RefexNidStringVersionBI<?>)member;
-				String strExt = extensionMember.getString1();
-				int cidExtNid = extensionMember.getNid1();
-				ComponentVersionBI cidExtCon = queryService.getComponent(cidExtNid);
-				String componentLabel = getComponentLabel(cidExtCon);
-
-				System.out.println(refCon.getPreferredDescription().getText() + " of CID_STR Type with Status: " + member.getStatus());
-				System.out.println("Is extended with CID: " + componentLabel + " and String: " + strExt);
-			} 
-			else {
-				System.out.println("Refex type: " + member.getRefexType());
-			}
+			output.println();
+			output.println("Version #: " + (i + 1));
+			RefexVersionBI<?> refex = (RefexVersionBI<?>)refsetChron.getVersions().toArray()[i];
+			printRefex(refex);
 		} 
+	}
+
+	private void printRefex(RefexVersionBI<?> refex) throws IOException, ContradictionException {
+		output.println("Refex type: " + refex.getRefexType() + " with Status: " + refex.getStatus());
+		output.println("Refset Assemblage: " + queryService.getConcept(refex.getAssemblageNid()).getFullySpecifiedDescription().getText());
+
+		output.println("Referenced Component: " + getComponentLabel(queryService.getComponent(refex.getReferencedComponentNid())));
+		
+		if (refex instanceof RefexStringVersionBI<?>) {
+			RefexStringVersionBI<?> extensionMember = (RefexStringVersionBI<?>)refex;
+			output.println("String value: " + extensionMember.getString1());
+		}
+		if (refex instanceof RefexBooleanVersionBI<?>) {
+			RefexBooleanVersionBI<?> extensionMember = (RefexBooleanVersionBI<?>)refex;
+			output.println("Boolean value: " + extensionMember.getBoolean1());
+		}
+		if (refex instanceof RefexIntVersionBI<?>) {
+			RefexIntVersionBI<?> extensionMember = (RefexIntVersionBI<?>)refex;
+			output.println("Integer value: " + extensionMember.getInt1());
+		}
+		if (refex instanceof RefexLongVersionBI<?>) {
+			RefexLongVersionBI<?> extensionMember = (RefexLongVersionBI<?>)refex;
+			output.println("Long value: " + extensionMember.getLong1());
+		}
+		if (refex instanceof RefexFloatVersionBI<?>) {
+			RefexFloatVersionBI<?> extensionMember = (RefexFloatVersionBI<?>)refex;
+			output.println("Float value: " + extensionMember.getFloat1());
+		}
+
+		if (refex instanceof RefexNidVersionBI<?>) {
+			RefexNidVersionBI<?> extensionMember = (RefexNidVersionBI<?>)refex;
+			String label = null;
+			if (extensionMember.getNid1() != 0) {
+				label = getComponentLabel(queryService.getComponent(extensionMember.getNid1()));
+			}
+			output.println("Component 1: " + label);
+		}
+		if (refex instanceof RefexNidNidVersionBI<?>) {
+			RefexNidNidVersionBI<?> extensionMember = (RefexNidNidVersionBI<?>)refex;
+			String label = null;
+			if (extensionMember.getNid2() != 0) {
+				label = getComponentLabel(queryService.getComponent(extensionMember.getNid2()));
+			}
+			output.println("Component 2: " + label);
+		}
+		if (refex instanceof RefexNidNidNidVersionBI<?>) {
+			RefexNidNidNidVersionBI<?> extensionMember = (RefexNidNidNidVersionBI<?>)refex;
+			String label = null;
+			if (extensionMember.getNid3() != 0) {
+				label = getComponentLabel(queryService.getComponent(extensionMember.getNid3()));
+			}
+			output.println("Component 3: " + label);
+		}
+		
 	}
 
 	private String getComponentLabel(ComponentVersionBI element) throws IOException, ContradictionException {
 		String text = null;
 
 		if (element instanceof ConceptVersionBI) {
-			text = ((ConceptVersionBI) element).getPreferredDescription().getText();
+			ConceptVersionBI concept = (ConceptVersionBI) element;
+			if (concept.getPreferredDescription() != null) {
+				text = concept.getPreferredDescription().getText();
+			}
+			else {
+				text = concept.getFullySpecifiedDescription().getText();
+			}
 		} else if (element instanceof DescriptionVersionBI) {
 			text = ((DescriptionVersionBI<?>) element).getText();
 		} else if (element instanceof RelationshipVersionBI) {
