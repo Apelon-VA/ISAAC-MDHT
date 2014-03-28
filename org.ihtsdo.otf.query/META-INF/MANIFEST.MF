@@ -3,8 +3,8 @@ Bundle-ManifestVersion: 2
 Bundle-Name: IHTSDO OTF Query Services
 Bundle-SymbolicName: org.ihtsdo.otf.query
 Bundle-Version: 1.0.0.qualifier
-Bundle-ClassPath: query-implementation-1.1-va-1.0.jar,
- query-lucene-1.1-va-1.0.jar
+Bundle-ClassPath: query-implementation-1.1-va-1.1.jar,
+ query-lucene-1.1-va-1.1.jar
 Bundle-Vendor: IHTSDO
 Export-Package: org.ihtsdo.otf.query.implementation,
  org.ihtsdo.otf.query.implementation.clauses,
