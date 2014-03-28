@@ -151,6 +151,12 @@
                id="property.tab.OTFRefsetSection"
 	           afterTab="property.tab.OTFRelationshipSection">           
 			</propertyTab> 
+			<propertyTab
+               category="core"
+               label="%tab.annotations.label"
+               id="property.tab.OTFAnnotationSection"
+	           afterTab="property.tab.OTFRefsetSection">           
+			</propertyTab> 
 	         <propertyTab
 	           label="%tab.identifier.label"
 	           category="core"
@@ -175,6 +181,11 @@
           <propertySection tab="property.tab.OTFRefsetSection" 
 	 	     class="gov.va.isaac.mdht.otf.ui.properties.RefsetMemberSection" 
 	 	     id="property.section.RefsetMemberSection">
+	            <input type="org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI"/>
+	      </propertySection>
+          <propertySection tab="property.tab.OTFAnnotationSection" 
+	 	     class="gov.va.isaac.mdht.otf.ui.properties.AnnotationSection" 
+	 	     id="property.section.AnnotationSection">
 	            <input type="org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI"/>
 	      </propertySection>
 	  </propertySections>

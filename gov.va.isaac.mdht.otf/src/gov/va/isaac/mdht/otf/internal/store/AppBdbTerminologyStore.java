@@ -206,6 +206,7 @@ public class AppBdbTerminologyStore {
 		if (concept != null) {
 			rootConcepts.add(concept);
 		}
+		//TODO this returns an empty concept.  For any unknown UUID????
 //		concept = getConcept(UUID.fromString(LOINC_UUID));
 //		if (concept != null) {
 //			rootConcepts.add(concept);

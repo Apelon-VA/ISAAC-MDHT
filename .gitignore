@@ -7,7 +7,9 @@ target/**
 *.pydevproject
 .metadata
 .gradle
+bin
 bin/**
+tmp
 tmp/**
 tmp/**/*
 *.tmp
@@ -15,10 +17,7 @@ tmp/**/*
 *.swp
 *~.nib
 local.properties
-.settings/
 .loadpath
-.project
-.classpath
 
 # External tool builders
 .externalToolBuilders/

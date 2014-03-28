@@ -21,6 +21,7 @@ package gov.va.isaac.mdht.otf.services;
 import gov.va.isaac.mdht.otf.internal.store.AppBdbTerminologyStore;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -49,21 +50,21 @@ public class ConceptPrinterService {
 		this.appTermStore = appTermStore;
 	}
 
-	public void printConcept(ConceptVersionBI concept) {
+	public void printConcept(ConceptVersionBI concept, PrintStream output) {
 		try {
-			System.out.println();
-			System.out.println("**************************************************************");
-			System.out.println("***** Concept: " + concept.getFullySpecifiedDescription().getText() + " *****");
-			System.out.println("**************************************************************");
+			output.println();
+			output.println("**************************************************************");
+			output.println("***** Concept: " + concept.getFullySpecifiedDescription().getText() + " *****");
+			output.println("**************************************************************");
 			
-			printConceptAttributes(concept);
+			printConceptAttributes(concept, output);
 
-			printDescriptions(concept);
-			System.out.println();
+			printDescriptions(concept, output);
+			output.println();
 
-			printRelationships(concept);
+			printRelationships(concept, output);
 			
-			RefsetPrinter refsetPrinter = new RefsetPrinter();
+			RefsetPrinter refsetPrinter = new RefsetPrinter(output);
 			refsetPrinter.printMembers(concept);
 			
 		} catch (IOException | ContradictionException e) {
@@ -71,71 +72,71 @@ public class ConceptPrinterService {
 		}		
 	}
 
-	private void printConceptAttributes(ConceptVersionBI concept) throws IOException, ContradictionException {
-		printBasicIds(concept);
+	private void printConceptAttributes(ConceptVersionBI concept, PrintStream output) throws IOException, ContradictionException {
+		printBasicIds(concept, output);
 
 		try {
 			ViewCoordinate vc = appTermStore.getSnomedStatedLatest();
-			System.out.println("Concept Fully Defined: " + concept.getConceptAttributes().getVersion(vc).isDefined());
+			output.println("Concept Fully Defined: " + concept.getConceptAttributes().getVersion(vc).isDefined());
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		printStamp(concept);
+		printStamp(concept, output);
 
 	}
 
-	private void printDescriptions(ConceptChronicleBI concept) throws IOException, ContradictionException {
+	private void printDescriptions(ConceptChronicleBI concept, PrintStream output) throws IOException, ContradictionException {
 		Collection<? extends DescriptionChronicleBI> allDesc = concept.getDescriptions();
 		ViewCoordinate vc = appTermStore.getSnomedStatedLatest();
 
 		for (DescriptionChronicleBI descAllVersions : allDesc) {
 			DescriptionVersionBI<?> desc = descAllVersions.getVersion(vc);
-			System.out.println();
-			System.out.println("Description: ");
+			output.println();
+			output.println("Description: ");
 
 			if (desc != null) {
-				printDescription(desc);
+				printDescription(desc, output);
 			}
 			else {
-				printAllVersions(descAllVersions);
+				printAllVersions(descAllVersions, output);
 			}
 		}
 	}
 
-	public void printAllVersions(DescriptionChronicleBI fullDesc) throws IOException, ContradictionException {
+	public void printAllVersions(DescriptionChronicleBI fullDesc, PrintStream output) throws IOException, ContradictionException {
 		int i = 1;
 		
-		System.out.println("*** " + fullDesc.getVersions().size() + " versions: ");
+		output.println("*** " + fullDesc.getVersions().size() + " versions: ");
 		for (DescriptionVersionBI<?> desc : fullDesc.getVersions()) {
-			System.out.println("Version #" + i++);
-			printDescription(desc);
+			output.println("Version #" + i++);
+			printDescription(desc, output);
 		}
 
 	}
 
-	private void printDescription(DescriptionVersionBI<?> desc) throws IOException, ContradictionException {
+	private void printDescription(DescriptionVersionBI<?> desc, PrintStream output) throws IOException, ContradictionException {
 		String text = desc.getText();
 		String type = getDescription(desc.getTypeNid());
 		boolean initCap = desc.isInitialCaseSignificant();
 		String lang = desc.getLang();
 
-		printBasicIds(desc);
-		printStamp(desc);
+		printBasicIds(desc, output);
+		printStamp(desc, output);
 
-		System.out.println("Desc Text: " + text);
-		System.out.println("Desc Type: " + type);
-		System.out.println("Desc Initial Cap Status: " + initCap);
-		System.out.println("Desc Language: " + lang + "\n");
+		output.println("Desc Text: " + text);
+		output.println("Desc Type: " + type);
+		output.println("Desc Initial Cap Status: " + initCap);
+		output.println("Desc Language: " + lang + "\n");
 	}
 	
-	private void printBasicIds(ComponentVersionBI component) throws IOException {
-		System.out.print("primUuid: " + component.getPrimordialUuid().toString());
-		System.out.println("  sctid: " + queryService.getSctid(component));
+	private void printBasicIds(ComponentVersionBI component, PrintStream output) throws IOException {
+		output.print("primUuid: " + component.getPrimordialUuid().toString());
+		output.println("  sctid: " + queryService.getSctid(component));
 	}
 
-	private void printIds(ComponentVersionBI component) throws IOException {
+	private void printIds(ComponentVersionBI component, PrintStream output) throws IOException {
 		// Ids
 		int nid = component.getNid();
 		
@@ -143,32 +144,32 @@ public class ConceptPrinterService {
 		List<UUID> uuids = component.getUUIDs();
 		Collection<? extends IdBI> allIds = component.getAllIds();
 
-		System.out.println("sctid = " + queryService.getSctid(component));
+		output.println("sctid = " + queryService.getSctid(component));
 		
-		System.out.println("Nid: " + nid + " and primUuid: " + primUuid.toString());
+		output.println("Nid: " + nid + " and primUuid: " + primUuid.toString());
 		
-		System.out.print("Other UUIDs: ");
+		output.print("Other UUIDs: ");
 		if (uuids.size() == 1) {
-			System.out.println("None");
+			output.println("None");
 		} else {
-			System.out.println();
+			output.println();
 			for (UUID uid : uuids) {
-				System.out.println(uid);
+				output.println(uid);
 			}
 		}		
 		
-		System.out.println("All Ids");
+		output.println("All Ids");
 		if (allIds.size() == 0) {
-			System.out.println("   No other Ids");
+			output.println("   No other Ids");
 		} else {
 			for (IdBI idBI : allIds) {
-				System.out.println("   id = " + idBI.getDenotation());
+				output.println("   id = " + idBI.getDenotation());
 			}
 		}
 		
 	}
 
-	private void printStamp(ComponentVersionBI comp) throws IOException, ContradictionException {
+	private void printStamp(ComponentVersionBI comp, PrintStream output) throws IOException, ContradictionException {
 		// STAMP
 		Status status = comp.getStatus();
 		String time = translateTime(comp.getTime());
@@ -176,7 +177,7 @@ public class ConceptPrinterService {
 		String module = getDescription(comp.getModuleNid());
 		String path = getDescription(comp.getPathNid());
 		
-		System.out.println("Stamp: " + status + " - " + time + " - " + author + " - " + module + " - " + path);
+		output.println("Stamp: " + status + " - " + time + " - " + author + " - " + module + " - " + path);
 	}
 
 	private String getDescription(int nid) throws IOException, ContradictionException {
@@ -198,63 +199,63 @@ public class ConceptPrinterService {
 		return TimeHelper.formatDate(time);
 	}
 
-	private void printRelationships(ConceptVersionBI concept) throws IOException, ContradictionException {
+	private void printRelationships(ConceptVersionBI concept, PrintStream output) throws IOException, ContradictionException {
 		Collection<? extends ConceptVersionBI> children = concept.getRelationshipsIncomingOriginsActiveIsa();
 		Collection<? extends ConceptVersionBI> parents = concept.getRelationshipsOutgoingDestinationsActiveIsa();
 		Collection<? extends RelationshipVersionBI> incomingRels = concept.getRelationshipsIncomingActive();
 		Collection<? extends RelationshipVersionBI> outgoingRels = concept.getRelationshipsOutgoingActive();
 		
 //		for (ConceptVersionBI parent : parents) {
-//			System.out.println("Concept Parent :  " + parent.getPreferredDescription().getText());
+//			output.println("Concept Parent :  " + parent.getPreferredDescription().getText());
 //		}
 //
-//		System.out.println();
+//		output.println();
 //		for (ConceptVersionBI child : children) {
-//			System.out.println("Concept Child :  " + child.getPreferredDescription().getText());
+//			output.println("Concept Child :  " + child.getPreferredDescription().getText());
 //		}
 
 		int i = 0;
 		for (RelationshipVersionBI<?> rel : outgoingRels) {
 			if (rel.getTypeNid() == Snomed.IS_A.getNid()) {
-				System.out.print("Concept Parent #" + ++i + ":  ");
-				System.out.println(getDescription(rel.getDestinationNid()));
+				output.print("Concept Parent #" + ++i + ":  ");
+				output.println(getDescription(rel.getDestinationNid()));
 			}
 		}
 
 		i = 0;
 		for (RelationshipVersionBI<?> rel : incomingRels) {
 			if (rel.getTypeNid() == Snomed.IS_A.getNid()) {
-				System.out.print("Concept Child #" + ++i + ":  ");
-				System.out.println(getDescription(rel.getOriginNid()));
+				output.print("Concept Child #" + ++i + ":  ");
+				output.println(getDescription(rel.getOriginNid()));
 			}
 		}
 
 		if (outgoingRels.size() > 0) {
-			System.out.println();
+			output.println();
 		}
 		i = 0;
 		for (RelationshipVersionBI<?> rel : outgoingRels) {
 			if (rel.getTypeNid() != Snomed.IS_A.getNid()) {
-				System.out.println("Source Role #" + ++i);
-				printRelationship(rel);
+				output.println("Source Role #" + ++i);
+				printRelationship(rel, output);
 			}
 		}
 		
 		if (incomingRels.size() > 0) {
-			System.out.println();
+			output.println();
 		}
 		i = 0;
 		for (RelationshipVersionBI<?> rel : incomingRels) {
 			if (rel.getTypeNid() != Snomed.IS_A.getNid()) {
-				System.out.println("Destination Role #" + ++i);
-				printRelationship(rel);
+				output.println("Destination Role #" + ++i);
+				printRelationship(rel, output);
 			}
 		}
 	}
 
-	private void printRelationship(RelationshipVersionBI<?> rel) throws IOException, ContradictionException {
-		printBasicIds(rel);
-		printStamp(rel);
+	private void printRelationship(RelationshipVersionBI<?> rel, PrintStream output) throws IOException, ContradictionException {
+		printBasicIds(rel, output);
+		printStamp(rel, output);
 		
 		// Relationship Information
 		String type = getDescription(rel.getTypeNid());
@@ -267,14 +268,14 @@ public class ConceptPrinterService {
 		String refine = getDescription(rel.getRefinabilityNid());
 		boolean stated = rel.isStated();
 
-		System.out.println("Relationship Origin Concept: " + origin);
-		System.out.println("Relationship Type: " + type);
-		System.out.println("Relationship Destination Concept: " + dest);
+		output.println("Relationship Origin Concept: " + origin);
+		output.println("Relationship Type: " + type);
+		output.println("Relationship Destination Concept: " + dest);
 
-		System.out.println("Relationship Characteristic Id: " + charId);
-		System.out.println("Relationship Group Id: " + group);
-		System.out.println("Relationship Refinability: " + refine);
-		System.out.println("Relationship is Stated?: " + stated);
+		output.println("Relationship Characteristic Id: " + charId);
+		output.println("Relationship Group Id: " + group);
+		output.println("Relationship Refinability: " + refine);
+		output.println("Relationship is Stated?: " + stated);
 
 		
 	}

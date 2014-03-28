@@ -16,32 +16,39 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *******************************************************************************/
-package gov.va.isaac.mdht.otf.ui.properties;
+package gov.va.isaac.mdht.otf.refset;
 
-import java.util.List;
+import java.util.UUID;
 
-import org.eclipse.jface.viewers.CellEditor;
-import org.eclipse.jface.viewers.ComboBoxCellEditor;
+import org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI;
 
-public abstract class ComboBoxEditingSupport extends OTFTableEditingSupport {
-	ComboBoxCellEditor comboBoxEditor = null;
-	private String[] itemArray = null;
+/**
+ * 
+ * @author <a href="mailto:dcarlson@xmlmodeling.com">Dave Carlson (XMLmodeling.com)</a> 
+ */
+public class RefsetDescriptor {
 	
-	public void setItemList(List<String> itemList) {
-		itemArray = new String[itemList.size()];
-		itemList.toArray(itemArray);
-	}
+	public static final UUID REFSET_DESCRIPTOR_CONCEPT = null;
+	
+	private ConceptVersionBI refset;
+	
+	private RefsetMember attributeDescription;
+	private RefsetMember attributeType;
+	private Integer attributeOrder;
 
-	public ComboBoxEditingSupport(OTFTableViewer viewer, List<String> itemList) {
-		super(viewer);
-		setItemList(itemList);
-	}
-
-	@Override
-	protected CellEditor getCellEditor(final Object element) {
-		comboBoxEditor = new ComboBoxCellEditor(tableViewer.getTable(), itemArray);
+	public RefsetDescriptor(ConceptVersionBI refset) {
+		this.refset = refset;
 		
-		return comboBoxEditor;
+		// TODO search for descriptor members in REFSET_DESCRIPTOR_CONCEPT
+		// attributeDescription =
+	}
+
+	public ConceptVersionBI getRefset() {
+		return refset;
+	}
+	
+	public void setRefset(ConceptVersionBI refset) {
+		this.refset = refset;
 	}
 	
 }

@@ -21,11 +21,18 @@ package gov.va.isaac.mdht.otf.ui.actions;
 import gov.va.isaac.mdht.otf.services.ConceptPrinterService;
 import gov.va.isaac.mdht.otf.services.TerminologyStoreFactory;
 
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.List;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IActionDelegate;
+import org.eclipse.ui.console.ConsolePlugin;
+import org.eclipse.ui.console.IConsole;
+import org.eclipse.ui.console.IConsoleManager;
+import org.eclipse.ui.console.IOConsoleOutputStream;
+import org.eclipse.ui.console.MessageConsole;
 import org.ihtsdo.otf.tcc.api.chronicle.ComponentBI;
 import org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI;
 
@@ -35,6 +42,8 @@ import org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI;
  * @author <a href="mailto:dcarlson@xmlmodeling.com">Dave Carlson (XMLmodeling.com)</a> 
  */
 public class DisplayConceptInConsole extends AbstractAction {
+	
+	private MessageConsole messageConsole = null;
 
 	private ConceptPrinterService printService = TerminologyStoreFactory.INSTANCE.createConceptPrinterService();
 	private List<ComponentBI> components = null;
@@ -45,17 +54,50 @@ public class DisplayConceptInConsole extends AbstractAction {
 	public DisplayConceptInConsole() {
 		super();
 	}
+	
+	public MessageConsole getConsole() {
+		IConsoleManager consoleManager = ConsolePlugin.getDefault().getConsoleManager();
+		
+		if (messageConsole == null) {
+			IConsole[] consoles = consoleManager.getConsoles();
+			for (int i = 0; i < consoles.length; i++) {
+				if (consoles[i] instanceof MessageConsole && "ISAAC".equals(consoles[i].getName())) {
+					messageConsole = (MessageConsole) consoles[i];
+					break;
+				}
+			}
+			if (messageConsole == null) {
+				messageConsole = new MessageConsole("ISAAC", null);
+				IConsole[] isaacConsoles = { messageConsole };
+				consoleManager.addConsoles(isaacConsoles);
+			}
+		}
+		
+		consoleManager.showConsoleView(messageConsole);
+		return messageConsole;
+	}
 
 	/**
 	 * @see IActionDelegate#run(IAction)
 	 */
 	public void run(IAction action) {
 		if (components != null) {
+			MessageConsole isaacConsole = getConsole();
+			IOConsoleOutputStream output = isaacConsole.newOutputStream();
+			PrintStream printStream = new PrintStream(output);
+			
 			for (ComponentBI component : components) {
 				if (component instanceof ConceptVersionBI) {
 					ConceptVersionBI concept = (ConceptVersionBI) component;
-					printService.printConcept(concept);
+					printService.printConcept(concept, printStream);
 				}
+			}
+			
+			try {
+				output.flush();
+				output.close();
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 	}

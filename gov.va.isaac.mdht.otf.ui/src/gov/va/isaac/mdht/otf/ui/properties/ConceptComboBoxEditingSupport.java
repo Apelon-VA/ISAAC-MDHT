@@ -30,9 +30,8 @@ public abstract class ConceptComboBoxEditingSupport extends OTFTableEditingSuppo
 	ComboBoxCellEditor comboBoxEditor = null;
 	private List<ConceptVersionBI> conceptList = null;
 	private String[] conceptNames = null;
-
-	public ConceptComboBoxEditingSupport(OTFTableViewer viewer, List<ConceptVersionBI> conceptList) {
-		super(viewer);
+	
+	public void setConceptList(List<ConceptVersionBI> conceptList) {
 		this.conceptList = conceptList;
 		conceptNames = new String[conceptList.size()];
 		int index = 0;
@@ -44,6 +43,11 @@ public abstract class ConceptComboBoxEditingSupport extends OTFTableEditingSuppo
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public ConceptComboBoxEditingSupport(OTFTableViewer viewer, List<ConceptVersionBI> conceptList) {
+		super(viewer);
+		setConceptList(conceptList);
 	}
 
 	@Override

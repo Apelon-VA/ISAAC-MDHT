@@ -9,10 +9,12 @@ Bundle-Localization: plugin
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ui,
  org.eclipse.ui.views.properties.tabbed,
- gov.va.isaac.mdht.otf
+ gov.va.isaac.mdht.otf,
+ org.eclipse.ui.console
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.va.isaac.mdht.otf.ui.actions,
+ gov.va.isaac.mdht.otf.ui.dialogs,
  gov.va.isaac.mdht.otf.ui.filter,
  gov.va.isaac.mdht.otf.ui.properties,
  gov.va.isaac.mdht.otf.ui.providers,
