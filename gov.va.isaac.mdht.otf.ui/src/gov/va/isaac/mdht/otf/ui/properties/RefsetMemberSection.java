@@ -197,16 +197,17 @@ public class RefsetMemberSection extends AbstractPropertySection {
 
 	private void editMember(final RefexVersionBI<?> refex) {
 		try {
-//			if (relationship.isUncommitted()) {
-//				storeService.forget(relationship);
-//			}
-//			else {
-//				retireRelationship(relationship);
-//			}
-			retireMember(refex);
-
 			RefsetMember modified = new RefsetMember(refex);
 			newMembers.add(modified);
+
+			retireMember(refex);
+			
+//			if (refex.isUncommitted()) {
+//				storeService.forget(refex);
+//			}
+//			else {
+//				retireMember(refex);
+//			}
 
 		} catch (Exception e) {
 			StatusManager.getManager().handle(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "Cannot edit refset member", e), 
@@ -557,6 +558,19 @@ public class RefsetMemberSection extends AbstractPropertySection {
 								conceptKindButton.setEnabled(false);
 								descriptionKindButton.setEnabled(false);
 								relationshipKindButton.setEnabled(false);
+								
+								RefsetAttributeType attrType = RefsetMember.getPrimitiveType(member);
+								if (attrType != null) {
+									valueKind = attrType;
+								}
+								else {
+									valueKind = RefsetAttributeType.String;
+								}
+								valueKindButton.setText(valueKind.name());
+								refexViewer.getColumnTypes()[1] = valueKind;
+								refexViewer.getColumnTitles()[1] = valueKind.name();
+								refexViewer.updateColumns();
+								
 							}
 							else {
 								conceptKindButton.setEnabled(true);

@@ -34,13 +34,17 @@ import org.ihtsdo.otf.tcc.api.contradiction.ContradictionException;
 import org.ihtsdo.otf.tcc.api.refex.RefexType;
 import org.ihtsdo.otf.tcc.api.refex.RefexVersionBI;
 import org.ihtsdo.otf.tcc.api.refex.type_boolean.RefexBooleanAnalogBI;
+import org.ihtsdo.otf.tcc.api.refex.type_boolean.RefexBooleanVersionBI;
 import org.ihtsdo.otf.tcc.api.refex.type_float.RefexFloatVersionBI;
 import org.ihtsdo.otf.tcc.api.refex.type_int.RefexIntAnalogBI;
+import org.ihtsdo.otf.tcc.api.refex.type_int.RefexIntVersionBI;
 import org.ihtsdo.otf.tcc.api.refex.type_long.RefexLongAnalogBI;
+import org.ihtsdo.otf.tcc.api.refex.type_long.RefexLongVersionBI;
 import org.ihtsdo.otf.tcc.api.refex.type_nid.RefexNidVersionBI;
 import org.ihtsdo.otf.tcc.api.refex.type_nid_nid.RefexNidNidVersionBI;
 import org.ihtsdo.otf.tcc.api.refex.type_nid_nid_nid.RefexNidNidNidVersionBI;
 import org.ihtsdo.otf.tcc.api.refex.type_string.RefexStringAnalogBI;
+import org.ihtsdo.otf.tcc.api.refex.type_string.RefexStringVersionBI;
 
 /**
  * 
@@ -179,6 +183,27 @@ public class RefsetMember {
 			}
 		}
     	return false;
+    }
+    
+    public static RefsetAttributeType getPrimitiveType(RefexVersionBI<?> refex) {
+    	RefsetAttributeType type = null;
+		if (refex instanceof RefexStringVersionBI<?>) {
+			type = RefsetAttributeType.String;
+		}
+		else if (refex instanceof RefexIntVersionBI<?>) {
+			type = RefsetAttributeType.Integer;
+		}
+		else if (refex instanceof RefexLongVersionBI<?>) {
+			type = RefsetAttributeType.Long;
+		}
+		else if (refex instanceof RefexFloatVersionBI<?>) {
+			type = RefsetAttributeType.Float;
+		}
+		else if (refex instanceof RefexBooleanVersionBI<?>) {
+			type = RefsetAttributeType.Boolean;
+		}
+    	
+    	return type;
     }
 	
 	public Object getExtensionValue() {
