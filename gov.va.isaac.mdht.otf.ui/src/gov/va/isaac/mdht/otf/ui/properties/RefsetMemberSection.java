@@ -224,7 +224,7 @@ public abstract class RefsetMemberSection extends AbstractPropertySection {
 		});
 
 		removeButton = getWidgetFactory().createButton(membersComposite, null, SWT.PUSH);
-		Image removeImage = Activator.getDefault().getBundledImage("icons/eview16/remove.gif");
+		Image removeImage = Activator.getDefault().getBundledImage("icons/eview16/delete.gif");
 		removeButton.setImage(removeImage);
 		removeButton.setToolTipText("Retire selected member(s)");
 		removeButton.addSelectionListener(new SelectionAdapter() {
