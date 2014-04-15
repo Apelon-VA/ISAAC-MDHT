@@ -19,43 +19,32 @@
 package gov.va.isaac.mdht.otf.ui.properties;
 
 
+import gov.va.isaac.mdht.otf.refset.RefsetAttributeType;
 import gov.va.isaac.mdht.otf.refset.RefsetMember;
-import gov.va.isaac.mdht.otf.services.ConceptBuilderService;
-import gov.va.isaac.mdht.otf.services.ConceptQueryService;
-import gov.va.isaac.mdht.otf.services.TerminologyStoreFactory;
-import gov.va.isaac.mdht.otf.services.TerminologyStoreService;
+import gov.va.isaac.mdht.otf.ui.dialogs.ConceptSearchDialog;
 import gov.va.isaac.mdht.otf.ui.internal.Activator;
+import gov.va.isaac.mdht.otf.ui.internal.l10n.Messages;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.IContentProvider;
-import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.statushandlers.StatusManager;
-import org.eclipse.ui.views.properties.tabbed.AbstractPropertySection;
-import org.eclipse.ui.views.properties.tabbed.ITabbedPropertyConstants;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
-import org.ihtsdo.otf.tcc.api.blueprint.IdDirective;
-import org.ihtsdo.otf.tcc.api.blueprint.RefexCAB;
-import org.ihtsdo.otf.tcc.api.blueprint.RefexDirective;
+import org.ihtsdo.otf.tcc.api.blueprint.CreateOrAmendBlueprint;
 import org.ihtsdo.otf.tcc.api.chronicle.ComponentVersionBI;
 import org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI;
 import org.ihtsdo.otf.tcc.api.refex.RefexVersionBI;
@@ -65,101 +54,69 @@ import org.ihtsdo.otf.tcc.api.refex.RefexVersionBI;
  * 
  * @author <a href="mailto:dcarlson@xmlmodeling.com">Dave Carlson (XMLmodeling.com)</a> 
  */
-public class AnnotationSection extends AbstractPropertySection {
+public class AnnotationSection extends RefsetMemberSection {
 
-	private TerminologyStoreService storeService = TerminologyStoreFactory.INSTANCE.createTerminologyStoreService();
-	private ConceptQueryService queryService = TerminologyStoreFactory.INSTANCE.createConceptQueryService();
-	private ConceptBuilderService builderService = TerminologyStoreFactory.INSTANCE.createConceptBuilderService();
+	protected ConceptVersionBI getAnnotationRefset() {
+		ConceptVersionBI refset = null;
+		
+		IFilter annotationRefsetFilter = new IFilter() {
+			@Override
+			public boolean select(Object object) {
+				try {
+					if ((object instanceof ConceptVersionBI)
+							&& ((ConceptVersionBI)object).isAnnotationStyleRefex()) {
+						return true;
+					}
+				} catch (IOException e) {
+					StatusManager.getManager().handle(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "Error in isAnnotationStyleRefex()", e), 
+							StatusManager.SHOW | StatusManager.LOG);
+				}
+				
+				return false;
+			}
+		};
+		
+		ConceptSearchDialog searchDialog = new ConceptSearchDialog(getPart().getSite().getShell(),
+				Messages.RefsetSelection_input_title, Messages.ConceptSelection_input_message, annotationRefsetFilter);
+		int result = searchDialog.open();
+		if (Dialog.OK == result && searchDialog.getResult().length == 1) {
+			refset = (ConceptVersionBI) searchDialog.getResult()[0];
+			}
+		
+		return refset;
+	}
 	
-	protected ConceptVersionBI conceptVersion;
-	
-	private boolean dirty = false;
-	
-	private GenericRefexTableViewer refexViewer = null;
-	
-	private Button removeButton = null;
-	
-	private void retireMember(final RefexVersionBI<?> refex) {
+	@Override
+	protected void addMember() {
 		try {
-			RefexCAB blueprint = refex.makeBlueprint(storeService.getSnomedStatedLatest(),
-					IdDirective.PRESERVE, RefexDirective.INCLUDE);
-
-			// TODO for now, required workaround to eliminate NPE
-			if (blueprint.getMemberUUID() == null) {
-				blueprint.setMemberUuid(refex.getPrimordialUuid());
+			ConceptVersionBI refset = getAnnotationRefset();
+			
+			if (refset != null) {
+				RefsetMember member = new RefsetMember(refset);
+				member.setReferencedComponent(conceptVersion);
+				newMembers.add(member);
 			}
 			
-			blueprint.setRetired();
-			builderService.construct(blueprint);
-			
-			dirty = true;
-
 		} catch (Exception e) {
-			StatusManager.getManager().handle(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "Cannot retire refset member", e), 
+			StatusManager.getManager().handle(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "Cannot add refset member", e), 
 					StatusManager.SHOW | StatusManager.LOG);
 		}
 	}
 
 	@Override
-	public boolean shouldUseExtraSpace() {
-		return true;
-	}
-
-	@Override
-	public void createControls(final Composite parent, final TabbedPropertySheetPage aTabbedPropertySheetPage) {
-		super.createControls(parent, aTabbedPropertySheetPage);
-		
-		Composite membersComposite = getWidgetFactory().createComposite(parent);
-		FormLayout layout = new FormLayout();
-		layout.marginWidth = ITabbedPropertyConstants.HSPACE;
-		layout.marginHeight = ITabbedPropertyConstants.VSPACE;
-		layout.spacing = ITabbedPropertyConstants.VMARGIN;
-		membersComposite.setLayout(layout);
-		
-//		FormData data = new FormData();
-//		data.left = new FormAttachment(0, 0);
-//		data.top = new FormAttachment(0, 0);
-//		membersComposite.setLayoutData(data);
-
-		removeButton = getWidgetFactory().createButton(membersComposite, null, SWT.PUSH);
-		Image removeImage = Activator.getDefault().getBundledImage("icons/eview16/remove.gif");
-		removeButton.setImage(removeImage);
-		removeButton.setToolTipText("Retire selected member(s)");
-		removeButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent event) {
-				ISelection selection = refexViewer.getSelection();
-				if (selection instanceof IStructuredSelection) {
-					for (Object selected : ((IStructuredSelection)selection).toList()) {
-						if (selected instanceof RefexVersionBI) {
-							retireMember((RefexVersionBI<?>)selected);
-						}
-						refexViewer.refresh();
-					}
-				}
-			}
-		});
-
-		FormData data = new FormData();
-		data.left = new FormAttachment(0, 0);
-		data.top = new FormAttachment(0, 0);
-		removeButton.setLayoutData(data);
-
-		Table table = getWidgetFactory().createTable(membersComposite, SWT.V_SCROLL | SWT.MULTI | SWT.FULL_SELECTION);
-		data = new FormData();
-		data.left = new FormAttachment(removeButton, 0);
-		data.right = new FormAttachment(100, 0);
-		data.top = new FormAttachment(0, 0);
-		data.bottom = new FormAttachment(100, 0);
-		table.setLayoutData(data);
-
-		refexViewer = new GenericRefexTableViewer(table) {
+	protected GenericRefexTableViewer createRefexViewer(Table table) {
+		GenericRefexTableViewer viewer = new GenericRefexTableViewer(table) {
 			@Override
 		    protected String[] getColumnTitles() {
 		        String[] titles = { "Refset", "Value", "Component 1", "Component 2", "Component 3" };
 		        return titles;
 		    }
 
+		    protected RefsetAttributeType[] getColumnTypes() {
+		    	RefsetAttributeType[] memberKinds = { RefsetAttributeType.Concept, RefsetAttributeType.String, RefsetAttributeType.Concept, RefsetAttributeType.Concept, RefsetAttributeType.Concept };
+		        return memberKinds;
+		    }
+		    
 			@Override
 			protected ComponentVersionBI getFirstColumnComponent(RefexVersionBI<?> refex) {
 				ComponentVersionBI component = null;
@@ -175,21 +132,6 @@ public class AnnotationSection extends AbstractPropertySection {
 				return refex.getRefsetConcept();
 			}
 
-
-			@Override
-			protected IWorkbenchPart getActivePart() {
-				return getPart();
-			}
-
-			@Override
-			protected void fireSelectionChanged(SelectionChangedEvent event) {
-				super.fireSelectionChanged(event);
-				
-				boolean enabled = !event.getSelection().isEmpty();
-//				Object selection = ((IStructuredSelection)event.getSelection()).getFirstElement();	
-				removeButton.setEnabled(enabled);
-			}
-
 			@Override
 			protected IContentProvider createContentProvider() {
 		        return new IStructuredContentProvider() {
@@ -197,8 +139,12 @@ public class AnnotationSection extends AbstractPropertySection {
 						try {
 							List<Object> members = new ArrayList<Object>();
 							
-							members.addAll(conceptVersion.getAnnotationsActive(storeService.getSnomedStatedLatest()));
+							Collection<? extends RefexVersionBI<?>> activeMembers = conceptVersion.getAnnotationsActive(storeService.getSnomedStatedLatest());
+							members.addAll(activeMembers);
+							updateContentState(activeMembers);
 							
+							members.addAll(newMembers);
+							saveButton.setEnabled(!newMembers.isEmpty());
 							return members.toArray();
 							
 						} catch (Exception e) {
@@ -211,44 +157,47 @@ public class AnnotationSection extends AbstractPropertySection {
 					public void dispose() { }
 					
 					public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+						updateContentState(conceptVersion);
+
 						if (!removeButton.isDisposed()) {
 							removeButton.setEnabled(false);
+							editButton.setEnabled(false);
+						}
+
+						if (!saveButton.isDisposed()) {
+							saveButton.setEnabled(!newMembers.isEmpty());
 						}
 					}
 		        	
 		        };
 			}
-		};
 
-	}
-
-	@Override
-	public void setInput(IWorkbenchPart part, ISelection selection) {
-		super.setInput(part, selection);
-		
-		conceptVersion = null;
-		
-		Object selected = ((IStructuredSelection)selection).getFirstElement();
-		if (selected instanceof ConceptVersionBI) {
-			conceptVersion = (ConceptVersionBI) selected;
-		}
-		if (selected instanceof IAdaptable) {
-			Object adapted = (ComponentVersionBI) ((IAdaptable)selected).getAdapter(ComponentVersionBI.class);
-			if (adapted instanceof ConceptVersionBI) {
-				conceptVersion = (ConceptVersionBI) adapted;
+			@Override
+			protected IWorkbenchPart getActivePart() {
+				return getPart();
 			}
-		}
+
+			@Override
+			protected void fireSelectionChanged(SelectionChangedEvent event) {
+				super.fireSelectionChanged(event);
+				
+				boolean enabled = !event.getSelection().isEmpty();
+				Object selection = ((IStructuredSelection)event.getSelection()).getFirstElement();	
+				removeButton.setEnabled(enabled);
+				editButton.setEnabled(enabled && !(selection instanceof CreateOrAmendBlueprint)
+						&& !(selection instanceof RefsetMember));
+			}
+
+		};
+		
+		return viewer;
 	}
 
 	@Override
-	public void dispose() {
-		super.dispose();
-
-	}
-
-	@Override
-	public void refresh() {
-		refexViewer.setInput(conceptVersion);
+	public void createControls(final Composite parent, final TabbedPropertySheetPage aTabbedPropertySheetPage) {
+		super.createControls(parent, aTabbedPropertySheetPage);
+		
+		createMembersComposite(parent);
 	}
 
 }
