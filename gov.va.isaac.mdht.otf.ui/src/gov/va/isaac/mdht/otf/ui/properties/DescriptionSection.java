@@ -41,8 +41,6 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
@@ -94,14 +92,18 @@ public class DescriptionSection extends AbstractPropertySection {
 
 	private Button editButton = null;
 
+	protected Button saveButton = null;
+	
 	private void buildAndCommit() {
 		try {
 			dirty = false;
 			
 			// build chronicle for any blueprints
-			for (DescriptionCAB description : newDescriptions) {
+			List<DescriptionCAB> newDescriptionsCopy = new ArrayList<DescriptionCAB>(newDescriptions);
+			for (DescriptionCAB description : newDescriptionsCopy) {
 				description.recomputeUuid();
 				builderService.construct(description);
+				newDescriptions.remove(description);
 			}
 			
 			// commit enclosing concept
@@ -246,6 +248,18 @@ public class DescriptionSection extends AbstractPropertySection {
 			}
 		});
 
+		saveButton = getWidgetFactory().createButton(composite, null, SWT.PUSH);
+		Image saveImage = Activator.getDefault().getBundledImage("icons/eview16/save.gif");
+		saveButton.setImage(saveImage);
+		saveButton.setToolTipText("Save all changes");
+		saveButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent event) {
+				buildAndCommit();
+				descriptionViewer.refresh();
+			}
+		});
+
 		FormData data = new FormData();
 		data.left = new FormAttachment(0, 0);
 		data.top = new FormAttachment(0, 0);
@@ -261,6 +275,11 @@ public class DescriptionSection extends AbstractPropertySection {
 		data.top = new FormAttachment(removeButton, 0);
 		editButton.setLayoutData(data);
 
+		data = new FormData();
+		data.left = new FormAttachment(0, 0);
+		data.top = new FormAttachment(editButton, 0);
+		saveButton.setLayoutData(data);
+		
 //		final Composite tableComposite = getWidgetFactory().createComposite(composite, SWT.NONE);
 //		final ScrolledComposite tableComposite = new ScrolledComposite(composite, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
 //		tableComposite.setExpandHorizontal(true);
@@ -311,6 +330,7 @@ public class DescriptionSection extends AbstractPropertySection {
 							List<Object> descriptions = new ArrayList<Object>();
 							descriptions.addAll(conceptVersion.getDescriptionsActive());
 							descriptions.addAll(newDescriptions);
+							saveButton.setEnabled(!newDescriptions.isEmpty());
 							return descriptions.toArray();
 							
 						} catch (Exception e) {
@@ -326,6 +346,10 @@ public class DescriptionSection extends AbstractPropertySection {
 						if (!removeButton.isDisposed()) {
 							removeButton.setEnabled(false);
 							editButton.setEnabled(false);
+						}
+
+						if (!saveButton.isDisposed()) {
+							saveButton.setEnabled(!newDescriptions.isEmpty());
 						}
 					}
 		        	
