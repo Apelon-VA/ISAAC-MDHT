@@ -20,10 +20,8 @@ package gov.va.isaac.mdht.otf.ui.properties;
 
 import gov.va.isaac.mdht.otf.refset.RefsetAttributeType;
 import gov.va.isaac.mdht.otf.refset.RefsetMember;
-import gov.va.isaac.mdht.otf.services.ConceptBuilderService;
 import gov.va.isaac.mdht.otf.services.ConceptQueryService;
 import gov.va.isaac.mdht.otf.services.TerminologyStoreFactory;
-import gov.va.isaac.mdht.otf.services.TerminologyStoreService;
 import gov.va.isaac.mdht.otf.ui.dialogs.ConceptSearchDialog;
 import gov.va.isaac.mdht.otf.ui.providers.ComponentLabelProvider;
 
@@ -33,7 +31,6 @@ import java.util.List;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.CellEditor;
@@ -66,15 +63,11 @@ import org.ihtsdo.otf.tcc.api.relationship.RelationshipVersionBI;
  */
 public abstract class GenericRefexTableViewer extends OTFTableViewer {
 
-	private TerminologyStoreService storeService = TerminologyStoreFactory.INSTANCE.createTerminologyStoreService();
 	private ConceptQueryService queryService = TerminologyStoreFactory.INSTANCE.createConceptQueryService();
-	private ConceptBuilderService builderService = TerminologyStoreFactory.INSTANCE.createConceptBuilderService();
-	
-	private List<RefsetMember> newMembers = new ArrayList<RefsetMember>();
 	
 	private List<TableViewerColumn> refexColumns;
 	
-	// need to keep track of eding support instances because not accessible from TableEditingColumn (which is final)
+	// need to keep track of editing support instances because not accessible from TableEditingColumn (which is final)
 	private List<OTFTableEditingSupport> refexColumnEditors;
 	
     public GenericRefexTableViewer(Table table)  {

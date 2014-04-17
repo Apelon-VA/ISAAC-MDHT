@@ -119,7 +119,7 @@ public class RefsetMember {
 
 	public RefexCAB createBlueprint() throws IllegalArgumentException, IOException, InvalidCAB, ContradictionException {
 		RefexCAB refexCAB = new RefexCAB(getRefexType(), referencedComponent.getPrimordialUuid(), refsetConcept.getPrimordialUuid(), 
-				IdDirective.GENERATE_HASH, RefexDirective.INCLUDE);
+				IdDirective.GENERATE_REFEX_CONTENT_HASH, RefexDirective.INCLUDE);
 		
 		setValueProperty(refexCAB);
 		setComponentProperties(refexCAB);

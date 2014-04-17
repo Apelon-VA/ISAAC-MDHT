@@ -22,17 +22,18 @@ import gov.va.isaac.mdht.otf.ui.providers.ComponentLabelProvider;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.InputDialog;
-import org.eclipse.jface.operation.IRunnableContext;
+import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 import org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI;
 
 /**
- * A dialog to select a concept from a list of concepts. The dialog allows
+ * A dialog to select a concept from a list of concepts. The dialog does not allow
  * multiple selections.
  */
 public class ConceptSearchDialog extends ElementListSelectionDialog {
@@ -41,32 +42,18 @@ public class ConceptSearchDialog extends ElementListSelectionDialog {
 	
 	private String inputTitle;
 	private String inputMessage;
-
-	private IRunnableContext fRunnableContext;
-
-	/*
-	private ICTS2SearchScope fScope;
-
-	public ConceptSearchDialog(Shell shell, IRunnableContext context, ICTS2SearchScope scope) {
-		super(shell, new ComponentLabelProvider(true));
-
-		setMultipleSelection(true);
-		setTitle(Messages.ConceptSelection_dialog_title);
-		setMessage(Messages.ConceptSelection_dialog_message);
-
-		Assert.isNotNull(context);
-		Assert.isNotNull(scope);
-
-		fRunnableContext = context;
-		fScope = scope;
-	}
-	*/
+	
+	private IFilter filter = null;
 
 	public ConceptSearchDialog(Shell shell) {
-		this(shell, Messages.ConceptSelection_input_title, Messages.ConceptSelection_input_message);
+		this(shell, Messages.ConceptSelection_input_title, Messages.ConceptSelection_input_message, null);
 	}
 
 	public ConceptSearchDialog(Shell shell, String inputTitle, String inputMessage) {
+		this(shell, inputTitle, inputMessage, null);
+	}
+
+	public ConceptSearchDialog(Shell shell, String inputTitle, String inputMessage, IFilter filter) {
 		super(shell, new ComponentLabelProvider(true));
 
 		setMultipleSelection(false);
@@ -74,6 +61,7 @@ public class ConceptSearchDialog extends ElementListSelectionDialog {
 		setMessage(Messages.ConceptSelection_dialog_message);
 		this.inputTitle = inputTitle;
 		this.inputMessage = inputMessage;
+		this.filter = filter;
 	}
 
 	public String getMatchValue() {
@@ -101,8 +89,20 @@ public class ConceptSearchDialog extends ElementListSelectionDialog {
 			try {
 //				List<ComponentVersionBI> concepts = queryService.getLuceneMatch(matchvalue);
 				List<ConceptVersionBI> concepts = queryService.searchActiveConcepts(matchvalue);
+				List<ConceptVersionBI> filteredConcepts = new ArrayList<ConceptVersionBI>();
+				
+				if (filter != null) {
+					for (ConceptVersionBI conceptVersionBI : concepts) {
+						if (filter.select(conceptVersionBI)) {
+							filteredConcepts.add(conceptVersionBI);
+						}
+					}
+				}
+				else {
+					filteredConcepts = concepts;
+				}
 		
-				setElements(concepts.toArray());
+				setElements(filteredConcepts.toArray());
 
 			} catch (Exception e) {
 				e.printStackTrace();

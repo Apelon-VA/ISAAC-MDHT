@@ -25,6 +25,8 @@ public class Messages extends NLS {
 	// Actions
 	// ==============================================================================
 
+	public static String RefsetSelection_input_title;
+
 	public static String ConceptSelection_input_title;
 
 	public static String ConceptSelection_input_message;

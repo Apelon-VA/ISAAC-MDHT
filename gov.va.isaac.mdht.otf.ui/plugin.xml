@@ -179,7 +179,7 @@
 	            <input type="org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI"/>
 	      </propertySection>
           <propertySection tab="property.tab.OTFRefsetSection" 
-	 	     class="gov.va.isaac.mdht.otf.ui.properties.RefsetMemberSection" 
+	 	     class="gov.va.isaac.mdht.otf.ui.properties.RefsetSpecificationSection" 
 	 	     id="property.section.RefsetMemberSection">
 	            <input type="org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI"/>
 	      </propertySection>

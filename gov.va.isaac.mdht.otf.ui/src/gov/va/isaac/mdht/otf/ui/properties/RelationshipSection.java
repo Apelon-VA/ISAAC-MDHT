@@ -109,14 +109,18 @@ public class RelationshipSection extends AbstractPropertySection {
 
 	private Button editButton = null;
 
+	protected Button saveButton = null;
+	
 	private void buildAndCommit() {
 		try {
 			dirty = false;
 			
 			// build chronicle for any blueprints
-			for (RelationshipCAB relationship : newRelationships) {
+			List<RelationshipCAB> newRelationshipsCopy = new ArrayList<RelationshipCAB>(newRelationships);
+			for (RelationshipCAB relationship : newRelationshipsCopy) {
 				relationship.recomputeUuid();
 				builderService.construct(relationship);
+				newRelationships.remove(relationship);
 			}
 			
 			// commit enclosing concept
@@ -313,6 +317,18 @@ public class RelationshipSection extends AbstractPropertySection {
 			}
 		});
 
+		saveButton = getWidgetFactory().createButton(composite, null, SWT.PUSH);
+		Image saveImage = Activator.getDefault().getBundledImage("icons/eview16/save.gif");
+		saveButton.setImage(saveImage);
+		saveButton.setToolTipText("Save all changes");
+		saveButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent event) {
+				buildAndCommit();
+				relationshipViewer.refresh();
+			}
+		});
+
 		FormData data = new FormData();
 		data.left = new FormAttachment(0, 0);
 		data.top = new FormAttachment(0, 0);
@@ -327,6 +343,11 @@ public class RelationshipSection extends AbstractPropertySection {
 		data.left = new FormAttachment(0, 0);
 		data.top = new FormAttachment(removeButton, 0);
 		editButton.setLayoutData(data);
+
+		data = new FormData();
+		data.left = new FormAttachment(0, 0);
+		data.top = new FormAttachment(editButton, 0);
+		saveButton.setLayoutData(data);
 		
 		Table table = getWidgetFactory().createTable(composite, SWT.V_SCROLL | SWT.MULTI | SWT.FULL_SELECTION);
 		data = new FormData();
@@ -355,6 +376,7 @@ public class RelationshipSection extends AbstractPropertySection {
 							List<Object> relationships = new ArrayList<Object>();
 							relationships.addAll(conceptVersion.getRelationshipsOutgoingActive());
 							relationships.addAll(newRelationships);
+							saveButton.setEnabled(!newRelationships.isEmpty());
 							return relationships.toArray();
 							
 						} catch (Exception e) {
@@ -370,6 +392,10 @@ public class RelationshipSection extends AbstractPropertySection {
 						if (!removeButton.isDisposed()) {
 							removeButton.setEnabled(false);
 							editButton.setEnabled(false);
+						}
+
+						if (!saveButton.isDisposed()) {
+							saveButton.setEnabled(!newRelationships.isEmpty());
 						}
 					}
 		        	
