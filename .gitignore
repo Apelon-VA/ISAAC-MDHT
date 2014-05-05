@@ -52,3 +52,5 @@ $RECYCLE.BIN/
 .DS_Store
 
 *.log
+/.project
+/.settings
