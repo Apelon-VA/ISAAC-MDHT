@@ -37,7 +37,6 @@ import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.DialogCellEditor;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.TableViewerColumn;
-import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Control;
@@ -70,6 +69,8 @@ public abstract class GenericRefexTableViewer extends OTFTableViewer {
 	// need to keep track of editing support instances because not accessible from TableEditingColumn (which is final)
 	private List<OTFTableEditingSupport> refexColumnEditors;
 	
+	private PrimitiveInputDialog primitiveInputDialog;
+	
     public GenericRefexTableViewer(Table table)  {
         super(table);
     }
@@ -90,6 +91,23 @@ public abstract class GenericRefexTableViewer extends OTFTableViewer {
     	RefsetAttributeType[] memberKinds = { RefsetAttributeType.Component, RefsetAttributeType.String, RefsetAttributeType.Concept, RefsetAttributeType.Concept, RefsetAttributeType.Concept };
         return memberKinds;
     }
+
+	protected Object getPrimitiveValue(final RefsetAttributeType memberKind) {
+		if (primitiveInputDialog == null) {
+			primitiveInputDialog = new PrimitiveInputDialog(
+					getActivePart().getSite().getShell(), "Extension Value",  "", "", null);
+		}
+		
+		primitiveInputDialog.setValueKind(memberKind);
+		primitiveInputDialog.setValueString("");
+
+		Object value = null;
+		if (primitiveInputDialog.open() == Window.OK) {
+			value = primitiveInputDialog.getValue();
+		}
+		
+		return value;
+	}
     
 	protected ComponentVersionBI getMemberComponent(RefsetAttributeType memberKind) {
 		ComponentVersionBI component = null;
@@ -284,14 +302,24 @@ public abstract class GenericRefexTableViewer extends OTFTableViewer {
     			@Override
     			protected CellEditor getCellEditor(final Object element) {
     				if (RefsetMember.isPrimitiveType(attributeType)) {
-    					cellEditor = new TextCellEditor(tableViewer.getTable());
+	    				cellEditor = new DialogCellEditor(tableViewer.getTable()) {
+	    					@Override
+	    					protected Object openDialogBox(Control cellEditorWindow) {
+	    						Object value = getPrimitiveValue(attributeType);
+	    						
+	    						//change the column type if set in the dialog
+	    						attributeType = primitiveInputDialog.getValueKind();
+	    						
+	    						return value;
+	    					}
+	    				};
     					
     				}
     				else {
 	    				cellEditor = new DialogCellEditor(tableViewer.getTable()) {
 	    					@Override
 	    					protected Object openDialogBox(Control cellEditorWindow) {
-	    						ComponentVersionBI component = getMemberComponent(columnType);
+	    						ComponentVersionBI component = getMemberComponent(attributeType);
 	    						return component;
 	    					}
 	    				};
@@ -316,7 +344,7 @@ public abstract class GenericRefexTableViewer extends OTFTableViewer {
 						Object cellValue = cellEditor.getValue();
     					if (!cellValue.equals(refsetMember.getExtensionValue())) {
     						try {
-    							refsetMember.setExtensionValue(cellValue, attributeType);
+    							refsetMember.setExtensionValue(cellValue);
     						} catch (NumberFormatException e) {
     							MessageDialog.open(MessageDialog.ERROR, getActivePart().getSite().getShell(), "Invalid Value", 
     									"Value must be type: " + attributeType.name(), SWT.NONE);

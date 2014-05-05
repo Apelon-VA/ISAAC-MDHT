@@ -33,12 +33,14 @@ import java.util.List;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.IWorkbenchPart;
@@ -81,10 +83,39 @@ public class AnnotationSection extends RefsetMemberSection {
 		int result = searchDialog.open();
 		if (Dialog.OK == result && searchDialog.getResult().length == 1) {
 			refset = (ConceptVersionBI) searchDialog.getResult()[0];
+		}
+
+		if (refset == null) {
+			// prompt for concept UUID
+			InputDialog inputDialog = new InputDialog(
+					getPart().getSite().getShell(), "Refset UUID", "Enter Refset Concept UUID", "", null);
+			if (inputDialog.open() == Window.OK) {
+				String uuidString = inputDialog.getValue();
+				if (uuidString != null && uuidString.length() > 0) {
+					refset = queryService.getConcept(uuidString);
+				}
 			}
-		
+		}
 		return refset;
 	}
+
+	/*
+	protected RefexVersionBI<?> buildAndCommit() {
+		RefexVersionBI<?> refexVersion = super.buildAndCommit();
+		
+		try {
+			if (!getAnnotationRefset().isAnnotationStyleRefex()) {
+				// TODO class cast exception.  Only works for Member, not extension Refex classes??
+				conceptVersion.addAnnotation(refexVersion);
+			}
+		} catch (IOException e) {
+			StatusManager.getManager().handle(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "Error in isAnnotationStyleRefex()", e), 
+			StatusManager.SHOW | StatusManager.LOG);
+		}
+		
+		return refexVersion;
+	}
+	*/
 	
 	@Override
 	protected void addMember() {

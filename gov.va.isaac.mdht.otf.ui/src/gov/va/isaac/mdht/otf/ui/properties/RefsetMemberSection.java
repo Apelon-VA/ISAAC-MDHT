@@ -102,7 +102,8 @@ public abstract class RefsetMemberSection extends AbstractPropertySection {
 	/**
 	 * Create blueprint and build chronicle
 	 */
-	protected void buildAndCommit() {
+	protected RefexVersionBI<?> buildAndCommit() {
+		RefexVersionBI<?> refexVersion = null;
 		List<RefsetMember> newMembersCopy = new ArrayList<RefsetMember>(newMembers);
 		for (RefsetMember refsetMember : newMembersCopy) {
 			try {
@@ -116,7 +117,7 @@ public abstract class RefsetMemberSection extends AbstractPropertySection {
 			try {
 				RefexCAB refexCAB = refsetMember.createBlueprint();
 				refexCAB.recomputeUuid();
-				builderService.construct(refexCAB);
+				refexVersion = builderService.construct(refexCAB);
 				newMembers.remove(refsetMember);
 
 			} catch (IOException | ContradictionException | InvalidCAB e) {
@@ -136,6 +137,8 @@ public abstract class RefsetMemberSection extends AbstractPropertySection {
 			StatusManager.getManager().handle(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "Cannot commit refset member(s)", e), 
 					StatusManager.SHOW | StatusManager.LOG);
 		}
+		
+		return refexVersion;
 	}
 	
 	protected void addMember() {
