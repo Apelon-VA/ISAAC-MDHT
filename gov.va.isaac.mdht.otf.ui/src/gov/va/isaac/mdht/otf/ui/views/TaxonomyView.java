@@ -18,9 +18,16 @@
  *******************************************************************************/
 package gov.va.isaac.mdht.otf.ui.views;
 
+import gov.va.isaac.mdht.otf.services.TerminologyStoreFactory;
+import gov.va.isaac.mdht.otf.services.TerminologyStoreService;
+import gov.va.isaac.mdht.otf.ui.internal.Activator;
 import gov.va.isaac.mdht.otf.ui.providers.ComponentLabelProvider;
 import gov.va.isaac.mdht.otf.ui.providers.ConceptContentProvider;
 
+import java.io.IOException;
+
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -38,11 +45,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
-import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.DrillDownAdapter;
 import org.eclipse.ui.part.ViewPart;
+import org.eclipse.ui.statushandlers.StatusManager;
 import org.eclipse.ui.views.properties.IPropertySheetPage;
 import org.eclipse.ui.views.properties.tabbed.ITabbedPropertySheetPageContributor;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
@@ -60,8 +67,8 @@ public class TaxonomyView extends ViewPart
 
 	private TreeViewer viewer;
 	private DrillDownAdapter drillDownAdapter;
-	private Action action1;
-	private Action action2;
+	private Action indexRepository;
+	private Action searchConcepts;
 	private Action doubleClickAction;
 	
 	class NameSorter extends ViewerSorter {
@@ -146,14 +153,14 @@ public class TaxonomyView extends ViewPart
 	}
 
 	private void fillLocalPullDown(IMenuManager manager) {
-//		manager.add(action1);
+		manager.add(indexRepository);
 //		manager.add(new Separator());
-//		manager.add(action2);
+		manager.add(searchConcepts);
 	}
 
 	private void fillContextMenu(IMenuManager manager) {
-//		manager.add(action1);
-//		manager.add(action2);
+//		manager.add(indexRepository);
+//		manager.add(searchConcepts);
 //		manager.add(new Separator());
 		drillDownAdapter.addNavigationActions(manager);
 		
@@ -164,32 +171,37 @@ public class TaxonomyView extends ViewPart
 	}
 	
 	private void fillLocalToolBar(IToolBarManager manager) {
-//		manager.add(action1);
-//		manager.add(action2);
-//		manager.add(new Separator());
+		manager.add(indexRepository);
+		manager.add(searchConcepts);
+		manager.add(new Separator());
 		drillDownAdapter.addNavigationActions(manager);
 	}
 
 	private void makeActions() {
-		action1 = new Action() {
+		indexRepository = new Action() {
 			public void run() {
-				showMessage("Action 1 executed");
+				TerminologyStoreService storeService = TerminologyStoreFactory.INSTANCE.createTerminologyStoreService();
+				try {
+					storeService.index();
+				} catch (IOException e) {
+					StatusManager.getManager().handle(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "Cannot index repository", e), 
+							StatusManager.SHOW | StatusManager.LOG);
+				}
 			}
 		};
-		action1.setText("Action 1");
-		action1.setToolTipText("Action 1 tooltip");
-		action1.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
-			getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
+		indexRepository.setText("Index");
+		indexRepository.setToolTipText("Index Repository");
+		indexRepository.setImageDescriptor(Activator.getImageDescriptor("icons/eview16/index.gif"));
 		
-		action2 = new Action() {
+		searchConcepts = new Action() {
 			public void run() {
-				showMessage("Action 2 executed");
+				showMessage("TODO search and show in taxonomy");
 			}
 		};
-		action2.setText("Action 2");
-		action2.setToolTipText("Action 2 tooltip");
-		action2.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
-				getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
+		searchConcepts.setText("Search");
+		searchConcepts.setToolTipText("Search Concepts");
+		searchConcepts.setImageDescriptor(Activator.getImageDescriptor("icons/eview16/search.gif"));
+		
 		doubleClickAction = new Action() {
 			public void run() {
 				ISelection selection = viewer.getSelection();

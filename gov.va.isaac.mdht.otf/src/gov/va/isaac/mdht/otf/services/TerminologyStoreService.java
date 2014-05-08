@@ -32,6 +32,7 @@ import org.ihtsdo.otf.tcc.api.description.DescriptionVersionBI;
 import org.ihtsdo.otf.tcc.api.metadata.binding.TermAux;
 import org.ihtsdo.otf.tcc.api.refex.RefexChronicleBI;
 import org.ihtsdo.otf.tcc.api.relationship.RelationshipVersionBI;
+import org.ihtsdo.otf.tcc.api.store.TerminologyStoreDI;
 
 public class TerminologyStoreService {
 	
@@ -85,16 +86,25 @@ public class TerminologyStoreService {
 		appTermStore.getStore().forget(concept.getChronicle());
 	}
 
-	public void forget(DescriptionVersionBI description) throws IOException {
+	public void forget(DescriptionVersionBI<?> description) throws IOException {
 		appTermStore.getStore().forget(description);
 	}
 
-	public void forget(RelationshipVersionBI relationship) throws IOException {
+	public void forget(RelationshipVersionBI<?> relationship) throws IOException {
 		appTermStore.getStore().forget(relationship);
 	}
 
-	public void forget(RefexChronicleBI refex) throws IOException {
+	public void forget(RefexChronicleBI<?> refex) throws IOException {
 		appTermStore.getStore().forget(refex);
+	}
+	
+	public void index() throws IOException {
+		TerminologyStoreDI store = appTermStore.getStore();
+		
+		System.out.println("indexing BDB.....");
+		store.index();
+		System.out.println("finished indexing BDB.");
+
 	}
 
 }

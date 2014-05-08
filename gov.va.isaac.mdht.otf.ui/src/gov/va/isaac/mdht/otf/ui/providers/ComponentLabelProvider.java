@@ -41,7 +41,12 @@ import org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI;
 import org.ihtsdo.otf.tcc.api.description.DescriptionVersionBI;
 import org.ihtsdo.otf.tcc.api.refex.RefexType;
 import org.ihtsdo.otf.tcc.api.refex.RefexVersionBI;
+import org.ihtsdo.otf.tcc.api.refex.type_boolean.RefexBooleanVersionBI;
+import org.ihtsdo.otf.tcc.api.refex.type_float.RefexFloatVersionBI;
+import org.ihtsdo.otf.tcc.api.refex.type_int.RefexIntVersionBI;
+import org.ihtsdo.otf.tcc.api.refex.type_long.RefexLongVersionBI;
 import org.ihtsdo.otf.tcc.api.refex.type_nid.RefexNidVersionBI;
+import org.ihtsdo.otf.tcc.api.refex.type_string.RefexStringVersionBI;
 import org.ihtsdo.otf.tcc.api.relationship.RelationshipVersionBI;
 
 public class ComponentLabelProvider extends LabelProvider implements ITableLabelProvider {
@@ -78,6 +83,28 @@ public class ComponentLabelProvider extends LabelProvider implements ITableLabel
 		}
 		
 		return value != null ? value : component;
+	}
+
+	public Image getValueTypeIcon(Object value) {
+		Image image = null;
+
+		if (value instanceof String) {
+			image = Activator.getDefault().getBundledImage("icons/types/TEXT.png");
+		}
+		else if (value instanceof Boolean) {
+			image = Activator.getDefault().getBundledImage("icons/types/BOOLEAN.png");
+		}
+		else if (value instanceof Integer) {
+			image = Activator.getDefault().getBundledImage("icons/types/INTEGER.png");
+		}
+		else if (value instanceof Long) {
+			image = Activator.getDefault().getBundledImage("icons/types/LONG.png");
+		}
+		else if (value instanceof Float) {
+			image = Activator.getDefault().getBundledImage("icons/types/FLOAT.png");
+		}
+
+		return image;
 	}
 	
 	@Override
@@ -220,6 +247,35 @@ public class ComponentLabelProvider extends LabelProvider implements ITableLabel
 			}
 			else if (element instanceof RefsetMember) {
 				return Activator.getDefault().getBundledImage("icons/obj16/Blueprint.gif");
+			}
+		}
+		else if (columnIndex == 1) {
+			Object element = unwrap(obj);
+			if (element instanceof RefexVersionBI) {
+				RefexVersionBI<?> refex = (RefexVersionBI<?>) element;
+				Object value = null;
+				if (refex instanceof RefexStringVersionBI<?>) {
+					value = ((RefexStringVersionBI<?>)refex).getString1();
+				}
+				else if (refex instanceof RefexBooleanVersionBI<?>) {
+					value = ((RefexBooleanVersionBI<?>)refex).getBoolean1();
+				}
+				else if (refex instanceof RefexLongVersionBI<?>) {
+					value = ((RefexLongVersionBI<?>)refex).getLong1();
+				}
+				else if (refex instanceof RefexIntVersionBI<?>) {
+					value = ((RefexIntVersionBI<?>)refex).getInt1();
+				}
+				else if (refex instanceof RefexFloatVersionBI<?>) {
+					value = ((RefexFloatVersionBI<?>)refex).getFloat1();
+				}
+				if (value != null) {
+					return getValueTypeIcon(value);
+				}
+			}
+			else if (element instanceof RefsetMember) {
+				RefsetMember member = (RefsetMember) element;
+				return getValueTypeIcon(member.getExtensionValue());
 			}
 		}
 		

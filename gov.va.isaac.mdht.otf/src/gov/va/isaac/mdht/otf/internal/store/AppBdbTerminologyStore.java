@@ -151,15 +151,6 @@ public class AppBdbTerminologyStore {
 		if (store == null) {
 			setBbdSystemProperty();
 			store = new BdbTerminologyStore();
-			
-//			try {
-//				System.out.print("indexing BDB.....");
-//				store.index();
-//				System.out.println("finished indexing BDB.");
-//			} catch (IOException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
 		}
 		
 		return store;

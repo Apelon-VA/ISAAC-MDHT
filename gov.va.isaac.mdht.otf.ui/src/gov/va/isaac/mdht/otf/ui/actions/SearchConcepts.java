@@ -33,9 +33,6 @@ public class SearchConcepts extends AbstractAction {
 
 	private List<ConceptItem> conceptItems = null;
 	
-	/**
-	 * Constructor for Action1.
-	 */
 	public SearchConcepts() {
 		super();
 	}
