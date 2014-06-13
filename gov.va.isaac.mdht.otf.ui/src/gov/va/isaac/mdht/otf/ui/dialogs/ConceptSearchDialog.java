@@ -15,8 +15,8 @@
  */
 package gov.va.isaac.mdht.otf.ui.dialogs;
 
-import gov.va.isaac.mdht.otf.services.ConceptQueryService;
-import gov.va.isaac.mdht.otf.services.TerminologyStoreFactory;
+import gov.va.isaac.mdht.otf.search.DescriptionSearch;
+import gov.va.isaac.mdht.otf.ui.internal.Activator;
 import gov.va.isaac.mdht.otf.ui.internal.l10n.Messages;
 import gov.va.isaac.mdht.otf.ui.providers.ComponentLabelProvider;
 
@@ -25,20 +25,23 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
+import org.eclipse.ui.statushandlers.StatusManager;
+import org.ihtsdo.otf.query.implementation.Query;
 import org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI;
+import org.ihtsdo.otf.tcc.api.metadata.binding.Snomed;
 
 /**
  * A dialog to select a concept from a list of concepts. The dialog does not allow
  * multiple selections.
  */
 public class ConceptSearchDialog extends ElementListSelectionDialog {
-	
-	private ConceptQueryService queryService = TerminologyStoreFactory.INSTANCE.createConceptQueryService();
 	
 	private String inputTitle;
 	private String inputMessage;
@@ -86,27 +89,31 @@ public class ConceptSearchDialog extends ElementListSelectionDialog {
 				// should not occur, but use original matchvalue
 			}
 			
+			List<ConceptVersionBI> concepts = null;
+			DescriptionSearch search = new DescriptionSearch();
+			
 			try {
-//				List<ComponentVersionBI> concepts = queryService.getLuceneMatch(matchvalue);
-				List<ConceptVersionBI> concepts = queryService.searchActiveConcepts(matchvalue);
-				List<ConceptVersionBI> filteredConcepts = new ArrayList<ConceptVersionBI>();
-				
-				if (filter != null) {
-					for (ConceptVersionBI conceptVersionBI : concepts) {
-						if (filter.select(conceptVersionBI)) {
-							filteredConcepts.add(conceptVersionBI);
-						}
-					}
-				}
-				else {
-					filteredConcepts = concepts;
-				}
-		
-				setElements(filteredConcepts.toArray());
+				Query query = search.getActiveDescriptionQuery(matchvalue, Snomed.CLINICAL_FINDING);
+				concepts = search.getQueryResultConcepts(query);
 
 			} catch (Exception e) {
-				e.printStackTrace();
+				StatusManager.getManager().handle(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "Error in Query Services", e), 
+						StatusManager.SHOW | StatusManager.LOG);
 			}
+			
+			List<ConceptVersionBI> filteredConcepts = new ArrayList<ConceptVersionBI>();
+			if (filter != null) {
+				for (ConceptVersionBI conceptVersionBI : concepts) {
+					if (filter.select(conceptVersionBI)) {
+						filteredConcepts.add(conceptVersionBI);
+					}
+				}
+			}
+			else {
+				filteredConcepts = concepts;
+			}
+	
+			setElements(filteredConcepts.toArray());
 			
 			return super.open();
 		}

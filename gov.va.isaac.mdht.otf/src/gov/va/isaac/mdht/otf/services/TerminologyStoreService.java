@@ -41,6 +41,10 @@ public class TerminologyStoreService {
 	public TerminologyStoreService(AppBdbTerminologyStore appDb) {
 		this.appTermStore = appDb;
 	}
+	
+	public TerminologyStoreDI getTerminologyStore() {
+		return appTermStore.getStore();
+	}
 
 	public ViewCoordinate getSnomedStatedLatest() throws IOException {
 		// store must be initialized
