@@ -118,7 +118,9 @@ public class ConceptQueryService {
 			ViewCoordinate vc = appTermStore.getSnomedStatedLatest();
 			
 			ConceptChronicleBI conceptChronicle = appTermStore.getStore().getConcept(uuid);
-			conceptVersion = conceptChronicle.getVersion(vc);
+			if (conceptChronicle != null) {
+				conceptVersion = conceptChronicle.getVersion(vc);
+			}
 			
 		} catch (Exception e) {
 			e.printStackTrace();

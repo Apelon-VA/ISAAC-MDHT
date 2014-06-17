@@ -146,7 +146,7 @@ public class DescriptionSearch extends LuceneSearch {
         ComponentProperty field = ComponentProperty.DESCRIPTION_TEXT;
         int limit = 1000;
         List<SearchResult> searchResults = descriptionIndexer.query(localQuery, field, limit);
-        System.out.println("Description count = " + searchResults.size());
+//        System.out.println("Description count = " + searchResults.size());
         
         return searchResults;
 	}
@@ -189,7 +189,7 @@ public class DescriptionSearch extends LuceneSearch {
             }
         }
 
-        System.out.println("Concept count = " + results.size());
+//        System.out.println("Concept count = " + results.size());
 		return results;
 	}
 

@@ -21,7 +21,7 @@ package gov.va.isaac.mdht.otf.ui.properties;
 
 import gov.va.isaac.mdht.otf.refset.RefsetAttributeType;
 import gov.va.isaac.mdht.otf.refset.RefsetMember;
-import gov.va.isaac.mdht.otf.ui.dialogs.ConceptSearchDialog;
+import gov.va.isaac.mdht.otf.ui.dialogs.ConceptListDialog;
 import gov.va.isaac.mdht.otf.ui.internal.Activator;
 import gov.va.isaac.mdht.otf.ui.internal.l10n.Messages;
 
@@ -78,7 +78,7 @@ public class AnnotationSection extends RefsetMemberSection {
 			}
 		};
 		
-		ConceptSearchDialog searchDialog = new ConceptSearchDialog(getPart().getSite().getShell(),
+		ConceptListDialog searchDialog = new ConceptListDialog(getPart().getSite().getShell(),
 				Messages.RefsetSelection_input_title, Messages.ConceptSelection_input_message, annotationRefsetFilter);
 		int result = searchDialog.open();
 		if (Dialog.OK == result && searchDialog.getResult().length == 1) {

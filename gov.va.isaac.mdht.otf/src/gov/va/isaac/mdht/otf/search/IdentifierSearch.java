@@ -53,16 +53,7 @@ public class IdentifierSearch extends LuceneSearch {
 
 
 	public ConceptVersionBI getConceptFromUUID(UUID uuid) {
-		ConceptVersionBI conceptVersion = null;
-		
-		try {
-			conceptVersion = queryService.getConcept(uuid);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-		
+		ConceptVersionBI conceptVersion = queryService.getConcept(uuid);
 		return conceptVersion;
 	}
 

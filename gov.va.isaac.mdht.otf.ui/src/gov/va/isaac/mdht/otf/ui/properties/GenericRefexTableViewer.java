@@ -22,7 +22,7 @@ import gov.va.isaac.mdht.otf.refset.RefsetAttributeType;
 import gov.va.isaac.mdht.otf.refset.RefsetMember;
 import gov.va.isaac.mdht.otf.services.ConceptQueryService;
 import gov.va.isaac.mdht.otf.services.TerminologyStoreFactory;
-import gov.va.isaac.mdht.otf.ui.dialogs.ConceptSearchDialog;
+import gov.va.isaac.mdht.otf.ui.dialogs.ConceptListDialog;
 import gov.va.isaac.mdht.otf.ui.providers.ComponentLabelProvider;
 
 import java.util.ArrayList;
@@ -113,14 +113,13 @@ public abstract class GenericRefexTableViewer extends OTFTableViewer {
 		ComponentVersionBI component = null;
 		
 		if (memberKind == RefsetAttributeType.Concept) {
-			ConceptSearchDialog searchDialog = new ConceptSearchDialog(getActivePart().getSite().getShell());
+			ConceptListDialog searchDialog = new ConceptListDialog(getActivePart().getSite().getShell());
 			int result = searchDialog.open();
 			if (Dialog.OK == result && searchDialog.getResult().length == 1) {
 				component = (ConceptVersionBI) searchDialog.getResult()[0];
 			}
 		}
-		
-		if (component == null) {
+		else {
 			// prompt for component UUID
 			InputDialog inputDialog = new InputDialog(
 					getActivePart().getSite().getShell(), "Component UUID", "Enter " + memberKind.name() + " UUID", "", null);
