@@ -18,9 +18,11 @@
  *******************************************************************************/
 package gov.va.isaac.mdht.otf.ui.actions;
 
+import gov.va.isaac.mdht.otf.ui.dialogs.ConceptListDialog;
 import gov.va.isaac.mdht.otf.ui.dialogs.ConceptSearchDialog;
 import gov.va.isaac.mdht.otf.ui.internal.Activator;
 import gov.va.isaac.mdht.otf.ui.providers.ConceptItem;
+import gov.va.isaac.mdht.otf.ui.views.TaxonomyView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +32,10 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.IActionDelegate;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.part.ISetSelectionTarget;
 import org.eclipse.ui.statushandlers.StatusManager;
 import org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI;
 
@@ -59,7 +64,26 @@ public class FindConcept extends AbstractAction {
 			}
 			searchDialog.open();
 			List<ConceptVersionBI> results = searchDialog.getResults();
+			ConceptVersionBI selectedResult = null;
 			
+			if (results.size() == 1) {
+				selectedResult = results.get(0);
+			}
+			else if (results.size() > 1) {
+				ConceptListDialog listDialog = new ConceptListDialog(activePart.getSite().getShell());
+				listDialog.setConceptList(results);
+				listDialog.open();
+				Object[] selectionResult = listDialog.getResult();
+				if (selectionResult != null && selectionResult.length == 1) {
+					selectedResult = (ConceptVersionBI)selectionResult[0];
+				}
+			}
+
+			if (selectedResult != null) {
+				IViewPart taxonomy = activePart.getSite().getWorkbenchWindow().getActivePage().showView(TaxonomyView.ID);
+				IStructuredSelection selection = new StructuredSelection(selectedResult);
+				((ISetSelectionTarget)taxonomy).selectReveal(selection);
+			}
 
 		} catch (Exception e) {
 			StatusManager.getManager().handle(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "Error in Query Services", e), 

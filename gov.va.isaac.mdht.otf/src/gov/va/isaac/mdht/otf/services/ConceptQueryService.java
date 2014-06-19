@@ -67,6 +67,28 @@ public class ConceptQueryService {
 		return children;
 	}
 
+	/**
+	 * Recursively collect all parents of given concept, but only first if multiple parents.
+	 * 
+	 * @param concept
+	 * @return
+	 */
+	public List<ConceptVersionBI> getParentPath(ConceptVersionBI concept) {
+		List<ConceptVersionBI> parents = new ArrayList<ConceptVersionBI>();
+		
+		try {
+			for (ConceptVersionBI parent : concept.getRelationshipsOutgoingDestinationsActiveIsa()) {
+				parents.add(parent);
+				parents.addAll(getParentPath(parent));
+				break;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return parents;
+	}
+
 	public ComponentVersionBI getComponent(String uuidString) {
 		return getComponent(UUID.fromString(uuidString));
 	}

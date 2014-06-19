@@ -19,14 +19,14 @@
 package gov.va.isaac.mdht.otf.ui.providers;
 
 import org.eclipse.core.runtime.IAdaptable;
-import org.ihtsdo.otf.tcc.api.blueprint.ConceptCB;
-import org.ihtsdo.otf.tcc.api.blueprint.CreateOrAmendBlueprint;
 import org.ihtsdo.otf.tcc.api.chronicle.ComponentBI;
 import org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI;
 
+/**
+ * @author <a href="mailto:dcarlson@xmlmodeling.com">Dave Carlson (XMLmodeling.com)</a> 
+ */
 public class ConceptItem implements IAdaptable {
 	private ConceptVersionBI conceptVersion = null;
-	private ConceptCB conceptBlueprint = null;
 	private ConceptItem parent = null;
 	private String label = null;
 	
@@ -34,19 +34,25 @@ public class ConceptItem implements IAdaptable {
 		this.conceptVersion = concept;
 		this.parent = parent;
 	}
-	public ConceptItem(ConceptCB concept, ConceptItem parent) {
-		this.conceptBlueprint = concept;
-		this.parent = parent;
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof ConceptItem && ((ConceptItem)obj).getConceptVersion().getPrimordialUuid()
+				.equals(conceptVersion.getPrimordialUuid())) {
+			return true;
+		}
+		return super.equals(obj);
+	}
+	
+	@Override
+	public int hashCode() {
+		return conceptVersion.hashCode();
 	}
 	
 	public ConceptVersionBI getConceptVersion() {
 		return conceptVersion;
 	}
 
-	public ConceptCB getConceptBlueprint() {
-		return conceptBlueprint;
-	}
-	
 	public ConceptItem getParent() {
 		return parent;
 	}
@@ -64,20 +70,11 @@ public class ConceptItem implements IAdaptable {
 		if (ComponentBI.class.isAssignableFrom(key)) {
 			return conceptVersion;
 		}
-		else if (CreateOrAmendBlueprint.class.isAssignableFrom(key)
-				|| ConceptCB.class.isAssignableFrom(key)) {
-			return conceptBlueprint;
-		}
 		return null;
 	}
 	
-	public void setBlueprint(ConceptCB concept) {
-		this.conceptBlueprint = concept;
-	}
-
 	public void setVersion(ConceptVersionBI concept) {
 		this.conceptVersion = concept;
-		this.conceptBlueprint = null;
 	}
 
 }

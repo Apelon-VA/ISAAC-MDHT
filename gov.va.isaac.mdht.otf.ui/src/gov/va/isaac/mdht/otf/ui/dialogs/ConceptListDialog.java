@@ -40,6 +40,8 @@ public class ConceptListDialog extends ElementListSelectionDialog {
 	private String inputTitle;
 	private String inputMessage;
 	
+	private List<ConceptVersionBI> concepts = null;
+	
 	private IFilter filter = null;
 
 	public ConceptListDialog(Shell shell) {
@@ -60,27 +62,31 @@ public class ConceptListDialog extends ElementListSelectionDialog {
 		this.inputMessage = inputMessage;
 		this.filter = filter;
 	}
+	
+	public void setConceptList(List<ConceptVersionBI> concepts) {
+		this.concepts = concepts;
+	}
 
 	/*
 	 * @see Window#open()
 	 */
 	@Override
 	public int open() {
-		List<ConceptVersionBI> concepts = null;
-		
-		try {
-			ConceptSearchDialog searchDialog = new ConceptSearchDialog(getParentShell());
-			searchDialog.open();
-			concepts = searchDialog.getResults();
-
-		} catch (Exception e) {
-			StatusManager.getManager().handle(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "Error in Query Services", e), 
-					StatusManager.SHOW | StatusManager.LOG);
+		if (concepts == null) {
+			try {
+				ConceptSearchDialog searchDialog = new ConceptSearchDialog(getParentShell());
+				searchDialog.open();
+				concepts = searchDialog.getResults();
+	
+			} catch (Exception e) {
+				StatusManager.getManager().handle(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "Error in Query Services", e), 
+						StatusManager.SHOW | StatusManager.LOG);
+			}
 		}
+		
 		if (concepts == null || concepts.isEmpty()) {
 			return Dialog.CANCEL;
 		}
-			
 			
 		List<ConceptVersionBI> filteredConcepts = new ArrayList<ConceptVersionBI>();
 		if (filter != null) {

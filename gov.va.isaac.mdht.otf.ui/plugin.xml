@@ -56,16 +56,10 @@
 			class="gov.va.isaac.mdht.otf.ui.actions.DisplayConceptInConsole">	
 		</action>
 
-		<action id="gov.va.isaac.mdht.otf.ui.actions.SearchSnomedId"
-			label="%searchSnomedId_label"
-			icon="icons/obj16/Concept.gif"
-			menubarPath="additions"
-			class="gov.va.isaac.mdht.otf.ui.actions.SearchSnomedId">	
-		</action>
 		<action id="gov.va.isaac.mdht.otf.ui.actions.FindConcept"
 			label="%findConcept_label"
 			icon="icons/obj16/Concept.gif"
-			menubarPath="additions"
+			menubarPath="find.ext"
 			class="gov.va.isaac.mdht.otf.ui.actions.FindConcept">	
 		</action>
 		
