@@ -341,7 +341,7 @@ public class ConceptSearchDialog extends Dialog {
 		};
 
 		Label intIdLabel= new Label(group, SWT.LEFT);
-		intIdLabel.setText("Integer ID");
+		intIdLabel.setText("Concept ID");
 		setGridData(intIdLabel, SWT.LEFT, false, SWT.CENTER, false);
 
 		integerIdField = new Text(group, SWT.BORDER);

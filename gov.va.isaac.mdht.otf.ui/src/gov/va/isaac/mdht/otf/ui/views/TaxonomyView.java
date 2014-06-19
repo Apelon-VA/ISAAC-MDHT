@@ -154,7 +154,9 @@ public class TaxonomyView extends ViewPart
 				
 				// create ConceptItem instances for tree items
 				for (int i = 0; i < newExpandedElements.length; i++) {
-					newExpandedElements[i] = new ConceptItem((ConceptVersionBI)newExpandedElements[i], null);
+					if (newExpandedElements[i] instanceof ConceptVersionBI) {
+						newExpandedElements[i] = new ConceptItem((ConceptVersionBI)newExpandedElements[i], null);
+					}
 				}
 
 				// refresh is required when new content was added by an action

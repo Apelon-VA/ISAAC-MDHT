@@ -23,6 +23,8 @@ import gov.va.isaac.mdht.otf.refset.RefsetMember;
 import gov.va.isaac.mdht.otf.services.ConceptQueryService;
 import gov.va.isaac.mdht.otf.services.TerminologyStoreFactory;
 import gov.va.isaac.mdht.otf.ui.dialogs.ConceptListDialog;
+import gov.va.isaac.mdht.otf.ui.dialogs.ConceptSearchDialog;
+import gov.va.isaac.mdht.otf.ui.internal.Activator;
 import gov.va.isaac.mdht.otf.ui.providers.ComponentLabelProvider;
 
 import java.util.ArrayList;
@@ -42,6 +44,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.statushandlers.StatusManager;
 import org.ihtsdo.otf.tcc.api.chronicle.ComponentVersionBI;
 import org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI;
 import org.ihtsdo.otf.tcc.api.description.DescriptionVersionBI;
@@ -113,10 +116,27 @@ public abstract class GenericRefexTableViewer extends OTFTableViewer {
 		ComponentVersionBI component = null;
 		
 		if (memberKind == RefsetAttributeType.Concept) {
-			ConceptListDialog searchDialog = new ConceptListDialog(getActivePart().getSite().getShell());
-			int result = searchDialog.open();
-			if (Dialog.OK == result && searchDialog.getResult().length == 1) {
-				component = (ConceptVersionBI) searchDialog.getResult()[0];
+			List<ConceptVersionBI> concepts = null;
+			try {
+				ConceptSearchDialog searchDialog = new ConceptSearchDialog(getActivePart().getSite().getShell());
+				searchDialog.open();
+				concepts = searchDialog.getResults();
+	
+			} catch (Exception e) {
+				StatusManager.getManager().handle(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "Error in Query Services", e), 
+						StatusManager.SHOW | StatusManager.LOG);
+			}
+			
+			if (concepts != null && concepts.size() == 1) {
+				component = concepts.get(0);
+			}
+			else {
+				ConceptListDialog searchDialog = new ConceptListDialog(getActivePart().getSite().getShell());
+				searchDialog.setConceptList(concepts);
+				int result = searchDialog.open();
+				if (Dialog.OK == result && searchDialog.getResult().length == 1) {
+					component = (ConceptVersionBI) searchDialog.getResult()[0];
+				}
 			}
 		}
 		else {
