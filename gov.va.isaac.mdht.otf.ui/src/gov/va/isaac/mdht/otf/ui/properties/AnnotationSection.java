@@ -21,7 +21,7 @@ package gov.va.isaac.mdht.otf.ui.properties;
 
 import gov.va.isaac.mdht.otf.refset.RefsetAttributeType;
 import gov.va.isaac.mdht.otf.refset.RefsetMember;
-import gov.va.isaac.mdht.otf.ui.dialogs.ConceptSearchDialog;
+import gov.va.isaac.mdht.otf.ui.dialogs.ConceptListDialog;
 import gov.va.isaac.mdht.otf.ui.internal.Activator;
 import gov.va.isaac.mdht.otf.ui.internal.l10n.Messages;
 
@@ -33,14 +33,12 @@ import java.util.List;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.IWorkbenchPart;
@@ -78,24 +76,13 @@ public class AnnotationSection extends RefsetMemberSection {
 			}
 		};
 		
-		ConceptSearchDialog searchDialog = new ConceptSearchDialog(getPart().getSite().getShell(),
+		ConceptListDialog searchDialog = new ConceptListDialog(getPart().getSite().getShell(),
 				Messages.RefsetSelection_input_title, Messages.ConceptSelection_input_message, annotationRefsetFilter);
 		int result = searchDialog.open();
 		if (Dialog.OK == result && searchDialog.getResult().length == 1) {
 			refset = (ConceptVersionBI) searchDialog.getResult()[0];
 		}
-
-		if (refset == null) {
-			// prompt for concept UUID
-			InputDialog inputDialog = new InputDialog(
-					getPart().getSite().getShell(), "Refset UUID", "Enter Refset Concept UUID", "", null);
-			if (inputDialog.open() == Window.OK) {
-				String uuidString = inputDialog.getValue();
-				if (uuidString != null && uuidString.length() > 0) {
-					refset = queryService.getConcept(uuidString);
-				}
-			}
-		}
+		
 		return refset;
 	}
 

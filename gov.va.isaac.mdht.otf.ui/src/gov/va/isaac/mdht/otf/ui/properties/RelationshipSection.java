@@ -23,7 +23,7 @@ import gov.va.isaac.mdht.otf.services.ConceptBuilderService;
 import gov.va.isaac.mdht.otf.services.ConceptQueryService;
 import gov.va.isaac.mdht.otf.services.TerminologyStoreFactory;
 import gov.va.isaac.mdht.otf.services.TerminologyStoreService;
-import gov.va.isaac.mdht.otf.ui.dialogs.ConceptSearchDialog;
+import gov.va.isaac.mdht.otf.ui.dialogs.ConceptListDialog;
 import gov.va.isaac.mdht.otf.ui.internal.Activator;
 import gov.va.isaac.mdht.otf.ui.providers.DescriptionComparator;
 
@@ -38,7 +38,6 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.DialogCellEditor;
 import org.eclipse.jface.viewers.IContentProvider;
@@ -48,7 +47,6 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -135,23 +133,11 @@ public class RelationshipSection extends AbstractPropertySection {
 	private ConceptVersionBI getTargetConcept() {
 		ConceptVersionBI concept = null;
 		
-		ConceptSearchDialog searchDialog = new ConceptSearchDialog(getPart().getSite().getShell(),
+		ConceptListDialog searchDialog = new ConceptListDialog(getPart().getSite().getShell(),
 				"Search Concepts", "Enter match string for target concept");
 		int result = searchDialog.open();
 		if (Dialog.OK == result && searchDialog.getResult().length == 1) {
 			concept = (ConceptVersionBI) searchDialog.getResult()[0];
-		}
-		
-		if (concept == null) {
-			// prompt for concept UUID
-			InputDialog inputDialog = new InputDialog(
-				getPart().getSite().getShell(), "Concept UUID", "Enter target concept UUID", "", null);
-			if (inputDialog.open() == Window.OK) {
-				String uuidString = inputDialog.getValue();
-				if (uuidString != null && uuidString.length() > 0) {
-					concept = queryService.getConcept(uuidString);
-				}
-			}
 		}
 		
 		return concept;

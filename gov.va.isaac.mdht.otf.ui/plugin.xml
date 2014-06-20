@@ -55,14 +55,13 @@
 			menubarPath="print.ext"
 			class="gov.va.isaac.mdht.otf.ui.actions.DisplayConceptInConsole">	
 		</action>
-		<!--
-		<action id="gov.va.isaac.mdht.otf.ui.actions.SearchConcepts"
-			label="%searchConcepts_label"
+
+		<action id="gov.va.isaac.mdht.otf.ui.actions.FindConcept"
+			label="%findConcept_label"
 			icon="icons/obj16/Concept.gif"
-			menubarPath="print.ext"
-			class="gov.va.isaac.mdht.otf.ui.actions.SearchConcepts">	
+			menubarPath="find.ext"
+			class="gov.va.isaac.mdht.otf.ui.actions.FindConcept">	
 		</action>
-		-->
 		
 		<action id="gov.va.isaac.mdht.otf.ui.actions.RetireConcept"
 			label="%retireConcept_label"

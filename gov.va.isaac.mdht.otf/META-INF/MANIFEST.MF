@@ -11,4 +11,5 @@ Require-Bundle: org.eclipse.core.runtime,
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.va.isaac.mdht.otf.refset,
+ gov.va.isaac.mdht.otf.search,
  gov.va.isaac.mdht.otf.services

@@ -18,13 +18,18 @@
  *******************************************************************************/
 package gov.va.isaac.mdht.otf.ui.views;
 
+import gov.va.isaac.mdht.otf.services.ConceptQueryService;
 import gov.va.isaac.mdht.otf.services.TerminologyStoreFactory;
 import gov.va.isaac.mdht.otf.services.TerminologyStoreService;
+import gov.va.isaac.mdht.otf.ui.dialogs.ConceptListDialog;
+import gov.va.isaac.mdht.otf.ui.dialogs.ConceptSearchDialog;
 import gov.va.isaac.mdht.otf.ui.internal.Activator;
 import gov.va.isaac.mdht.otf.ui.providers.ComponentLabelProvider;
 import gov.va.isaac.mdht.otf.ui.providers.ConceptContentProvider;
+import gov.va.isaac.mdht.otf.ui.providers.ConceptItem;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -39,23 +44,30 @@ import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.DrillDownAdapter;
+import org.eclipse.ui.part.ISetSelectionTarget;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.statushandlers.StatusManager;
 import org.eclipse.ui.views.properties.IPropertySheetPage;
 import org.eclipse.ui.views.properties.tabbed.ITabbedPropertySheetPageContributor;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
+import org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI;
 
+/**
+ * @author <a href="mailto:dcarlson@xmlmodeling.com">Dave Carlson (XMLmodeling.com)</a> 
+ */
 public class TaxonomyView extends ViewPart
-	implements ITabbedPropertySheetPageContributor {
+	implements ITabbedPropertySheetPageContributor, ISetSelectionTarget {
 
 	/**
 	 * The ID of the view as specified by the extension.
@@ -111,6 +123,55 @@ public class TaxonomyView extends ViewPart
 	}
 
 	/**
+	 * Set the selection to the tree viewer, and expand nodes if necessary.
+	 * 
+	 * @see org.eclipse.ui.part.ISetSelectionTarget#selectReveal(org.eclipse.jface.viewers.ISelection)
+	 */
+	public void selectReveal(ISelection selection) {
+		// this code copied from CommonNavigator
+		if (viewer != null) {
+			ConceptVersionBI concept = null;
+			
+			if (selection instanceof IStructuredSelection) {
+				Object[] newSelection = ((IStructuredSelection) selection).toArray();
+				Object[] expandedElements = viewer.getExpandedElements();
+				
+				// get all parents of selected concept
+				if (newSelection.length == 1 && newSelection[0] instanceof ConceptVersionBI) {
+					ConceptQueryService queryService = TerminologyStoreFactory.INSTANCE.createConceptQueryService();
+					concept = (ConceptVersionBI) newSelection[0];
+					List<ConceptVersionBI> parents = queryService.getParentPath(concept);
+					int numParents = parents.size();
+					expandedElements = new Object[numParents];
+					for (int i=numParents; i>0; i--) {
+						expandedElements[numParents-i] = parents.get(i-1);
+					}
+				}
+				
+				Object[] newExpandedElements = new Object[newSelection.length + expandedElements.length];
+				System.arraycopy(expandedElements, 0, newExpandedElements, 0, expandedElements.length);
+				System.arraycopy(newSelection, 0, newExpandedElements, expandedElements.length, newSelection.length);
+				
+				// create ConceptItem instances for tree items
+				for (int i = 0; i < newExpandedElements.length; i++) {
+					if (newExpandedElements[i] instanceof ConceptVersionBI) {
+						newExpandedElements[i] = new ConceptItem((ConceptVersionBI)newExpandedElements[i], null);
+					}
+				}
+
+				// refresh is required when new content was added by an action
+//				viewer.refresh();
+				viewer.setExpandedElements(newExpandedElements);
+			}
+			
+			if (concept != null) {
+				ISelection selectedItem = new StructuredSelection(new ConceptItem(concept, null));
+				viewer.setSelection(selectedItem, true);
+			}
+		}
+	}
+
+	/**
 	 * This is a callback that will allow us
 	 * to create the viewer and initialize it.
 	 */
@@ -153,7 +214,7 @@ public class TaxonomyView extends ViewPart
 	}
 
 	private void fillLocalPullDown(IMenuManager manager) {
-		manager.add(indexRepository);
+//		manager.add(indexRepository);
 //		manager.add(new Separator());
 		manager.add(searchConcepts);
 	}
@@ -165,13 +226,14 @@ public class TaxonomyView extends ViewPart
 		drillDownAdapter.addNavigationActions(manager);
 		
 		// Other plug-ins can contribute their actions here
+		manager.add(new Separator(IWorkbenchActionConstants.FIND_EXT));
 		manager.add(new Separator(IWorkbenchActionConstants.M_EDIT));
 		manager.add(new Separator(IWorkbenchActionConstants.PRINT_EXT));
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 	}
 	
 	private void fillLocalToolBar(IToolBarManager manager) {
-		manager.add(indexRepository);
+//		manager.add(indexRepository);
 		manager.add(searchConcepts);
 		manager.add(new Separator());
 		drillDownAdapter.addNavigationActions(manager);
@@ -195,11 +257,39 @@ public class TaxonomyView extends ViewPart
 		
 		searchConcepts = new Action() {
 			public void run() {
-				showMessage("TODO search and show in taxonomy");
+				try {
+					ConceptSearchDialog searchDialog = new ConceptSearchDialog(getSite().getShell());
+					searchDialog.open();
+					List<ConceptVersionBI> results = searchDialog.getResults();
+					ConceptVersionBI selectedResult = null;
+					
+					if (results.size() == 1) {
+						selectedResult = results.get(0);
+					}
+					else if (results.size() > 1) {
+						ConceptListDialog listDialog = new ConceptListDialog(getSite().getShell());
+						listDialog.setConceptList(results);
+						listDialog.open();
+						Object[] selectionResult = listDialog.getResult();
+						if (selectionResult != null && selectionResult.length == 1) {
+							selectedResult = (ConceptVersionBI)selectionResult[0];
+						}
+					}
+
+					if (selectedResult != null) {
+						IViewPart taxonomy = getSite().getWorkbenchWindow().getActivePage().showView(TaxonomyView.ID);
+						IStructuredSelection selection = new StructuredSelection(selectedResult);
+						((ISetSelectionTarget)taxonomy).selectReveal(selection);
+					}
+
+				} catch (Exception e) {
+					StatusManager.getManager().handle(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "Error in Query Services", e), 
+							StatusManager.SHOW | StatusManager.LOG);
+				}
 			}
 		};
 		searchConcepts.setText("Search");
-		searchConcepts.setToolTipText("Search Concepts");
+		searchConcepts.setToolTipText("Find Concepts");
 		searchConcepts.setImageDescriptor(Activator.getImageDescriptor("icons/eview16/search.gif"));
 		
 		doubleClickAction = new Action() {

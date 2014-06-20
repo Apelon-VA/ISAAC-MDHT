@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="external/log4j-1.2.17.jar"/>
+	<classpathentry exported="true" kind="lib" path="external/slf4j-api-1.7.6.jar"/>
+	<classpathentry exported="true" kind="lib" path="external/slf4j-log4j12-1.7.6.jar"/>
+	<classpathentry exported="true" kind="lib" path="external/annotation-detector-3.0.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="external/asm-all-repackaged-2.2.0-b14.jar"/>
 	<classpathentry exported="true" kind="lib" path="external/bean-validator-2.2.0-b14.jar"/>
 	<classpathentry exported="true" kind="lib" path="external/cglib-2.2.0-b14.jar"/>
@@ -7,7 +11,7 @@
 	<classpathentry exported="true" kind="lib" path="class-model-2.2.0-b14.jar"/>
 	<classpathentry exported="true" kind="lib" path="config-types-2.2.0-b14.jar"/>
 	<classpathentry exported="true" kind="lib" path="core-2.2.0-b14.jar"/>
-	<classpathentry exported="true" kind="lib" path="hk2-api-2.2.0-b14.jar"/>
+	<classpathentry exported="true" kind="lib" path="hk2-api-2.2.0-b14.jar" sourcepath="/Users/dcarlson/.m2/repository/org/glassfish/hk2/hk2-api/2.2.0-b14/hk2-api-2.2.0-b14-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="hk2-config-2.2.0-b14.jar"/>
 	<classpathentry exported="true" kind="lib" path="hk2-inhabitant-generator-2.2.0-b14.jar"/>
 	<classpathentry exported="true" kind="lib" path="hk2-locator-2.2.0-b14.jar"/>
