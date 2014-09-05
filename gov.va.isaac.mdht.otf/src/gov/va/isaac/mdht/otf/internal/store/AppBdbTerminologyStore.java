@@ -18,6 +18,11 @@
  *******************************************************************************/
 package gov.va.isaac.mdht.otf.internal.store;
 
+import gov.va.isaac.mdht.otf.services.ConceptBuilderService;
+import gov.va.isaac.mdht.otf.services.ConceptQueryService;
+import gov.va.isaac.mdht.otf.services.TerminologyStoreFactory;
+import gov.va.isaac.mdht.otf.services.TerminologyStoreService;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -28,9 +33,12 @@ import java.util.UUID;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
+import org.ihtsdo.otf.tcc.api.blueprint.ConceptCB;
+import org.ihtsdo.otf.tcc.api.blueprint.InvalidCAB;
 import org.ihtsdo.otf.tcc.api.blueprint.TerminologyBuilderBI;
 import org.ihtsdo.otf.tcc.api.concept.ConceptChronicleBI;
 import org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI;
+import org.ihtsdo.otf.tcc.api.contradiction.ContradictionException;
 import org.ihtsdo.otf.tcc.api.coordinate.EditCoordinate;
 import org.ihtsdo.otf.tcc.api.coordinate.StandardViewCoordinates;
 import org.ihtsdo.otf.tcc.api.coordinate.ViewCoordinate;
@@ -49,8 +57,9 @@ public class AppBdbTerminologyStore {
     public static final String BDB_FOLDER = "berkeley-db";
     
     // root concepts
+	public static final String ISAAC_ROOT_UUID = "c767a452-41e3-5835-90b7-439f5b738035";
 	public static final String SNOMED_CT_CONCEPT_UUID = "ee9ac5d2-a07c-3981-a57a-f7f26baf38d8";
-	public static final String LOINC_UUID = "3958d043-9e8c-508e-bf6d-fd9c83a856da";
+	public static final String LOINC_ROOT_UUID = "3958d043-9e8c-508e-bf6d-fd9c83a856da";
 	public static final String REFSET_AUXILLIARY_UUID = "1c698388-c309-3dfa-96f0-86248753fac5";
 	
 	// other referenced concepts
@@ -193,21 +202,51 @@ public class AppBdbTerminologyStore {
 	public List<ConceptVersionBI> getRootConcepts() {
 		List<ConceptVersionBI> rootConcepts = new ArrayList<ConceptVersionBI>();
 
+//		ConceptVersionBI concept = getConcept(UUID.fromString(ISAAC_ROOT_UUID));
+//		if (concept != null) {
+//			rootConcepts.add(concept);
+//		}
+
 		ConceptVersionBI concept = getConcept(UUID.fromString(SNOMED_CT_CONCEPT_UUID));
 		if (concept != null) {
 			rootConcepts.add(concept);
 		}
-		//TODO this returns an empty concept.  For any unknown UUID????
-//		concept = getConcept(UUID.fromString(LOINC_UUID));
-//		if (concept != null) {
-//			rootConcepts.add(concept);
-//		}
-		concept = getConcept(UUID.fromString(REFSET_AUXILLIARY_UUID));
+
+		concept = getConcept(UUID.fromString(LOINC_ROOT_UUID));
 		if (concept != null) {
 			rootConcepts.add(concept);
 		}
-		
+
 		return rootConcepts;
+	}
+
+	public ConceptVersionBI getOrCreateRootConcept(String uuid, String name) {
+		ConceptQueryService query = TerminologyStoreFactory.INSTANCE.createConceptQueryService();
+		ConceptVersionBI rootConcept = null;
+		if (uuid != null) {
+			rootConcept = query.getConcept(uuid);
+		}
+
+		try {
+			if (rootConcept == null || rootConcept.getFullySpecifiedDescription() == null) {
+				ConceptBuilderService builder = TerminologyStoreFactory.INSTANCE.createConceptBuilderService();
+				List<ConceptVersionBI> parents = new ArrayList<ConceptVersionBI>();
+				ConceptCB childBlueprint;
+					childBlueprint = builder.createConcept(parents, name, name);
+					rootConcept = builder.construct(childBlueprint);
+
+					TerminologyStoreService storeService = TerminologyStoreFactory.INSTANCE.createTerminologyStoreService();
+					// TODO bug in this API
+//					storeService.commit(fhirConcept.getChronicle());
+
+					storeService.commitAll();
+			}
+		} catch (IOException | InvalidCAB | ContradictionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return rootConcept;
 	}
 
 	private ConceptVersionBI getConcept(UUID uuid) {
