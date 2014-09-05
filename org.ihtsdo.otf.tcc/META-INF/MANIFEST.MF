@@ -7,10 +7,8 @@ Bundle-ClassPath: tcc-api-1.1-va-1.3.jar,
  tcc-datastore-1.1-va-1.3.jar,
  tcc-dto-ddo-1.1-va-1.3.jar,
  tcc-lookup-1.1-va-1.3.jar,
- tcc-model-impl-1.1-va-1.3.jar,
- HK2Utilities-1.2.jar
-Export-Package: gov.va.oia.HK2Utilities,
- org.ihtsdo.otf.tcc.api,
+ tcc-model-impl-1.1-va-1.3.jar
+Export-Package: org.ihtsdo.otf.tcc.api,
  org.ihtsdo.otf.tcc.api.blueprint,
  org.ihtsdo.otf.tcc.api.changeset,
  org.ihtsdo.otf.tcc.api.chronicle,
