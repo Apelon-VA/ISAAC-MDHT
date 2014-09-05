@@ -7,7 +7,6 @@
 	<classpathentry exported="true" kind="lib" path="external/asm-all-repackaged-2.2.0-b14.jar"/>
 	<classpathentry exported="true" kind="lib" path="external/bean-validator-2.2.0-b14.jar"/>
 	<classpathentry exported="true" kind="lib" path="external/cglib-2.2.0-b14.jar"/>
-	<classpathentry exported="true" kind="lib" path="external/javax.inject-2.2.0-b14.jar"/>
 	<classpathentry exported="true" kind="lib" path="class-model-2.2.0-b14.jar"/>
 	<classpathentry exported="true" kind="lib" path="config-types-2.2.0-b14.jar"/>
 	<classpathentry exported="true" kind="lib" path="core-2.2.0-b14.jar"/>
