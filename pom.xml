@@ -74,9 +74,9 @@
   <repositories>
     <!-- configure eclipse p2 repository to resolve against -->
     <repository>
-      <id>kepler</id>
+      <id>luna</id>
       <layout>p2</layout>
-      <url>http://download.eclipse.org/releases/kepler</url>
+      <url>http://download.eclipse.org/releases/luna</url>
     </repository>
   </repositories>
 
