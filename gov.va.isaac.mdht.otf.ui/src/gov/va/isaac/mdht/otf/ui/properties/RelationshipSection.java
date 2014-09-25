@@ -160,7 +160,7 @@ public class RelationshipSection extends AbstractPropertySection {
 	private void retireRelationship(final RelationshipVersionBI<?> relationship) {
 		try {
 			RelationshipCAB blueprint = relationship.makeBlueprint(
-					storeService.getSnomedStatedLatest(),
+					storeService.getViewCoordinate(),
 					IdDirective.PRESERVE,
 					RefexDirective.INCLUDE);
 			
@@ -390,12 +390,13 @@ public class RelationshipSection extends AbstractPropertySection {
 
 			@Override
 		    protected void createColumns() {
-		        String[] titles = { "Type", "Destination", "Stated" };
-		        int[] bounds = { 200, 300, 100 };
+		        String[] titles = { "Type", "Destination", "Stated", "Module" };
+		        int[] bounds = { 200, 300, 100, 200 };
 		
 		        TableViewerColumn typeColumn = createTableViewerColumn(titles[0], bounds[0], 0);
 		        TableViewerColumn destinationColumn = createTableViewerColumn(titles[1], bounds[1], 1);
 		        TableViewerColumn statedColumn = createTableViewerColumn(titles[2], bounds[2], 2);
+		        TableViewerColumn moduleColumn = createTableViewerColumn(titles[3], bounds[3], 3);
 		        
 		        typeColumn.setEditingSupport(new ConceptComboBoxEditingSupport(this, getAllRelationshipTypes()) {
 					@Override

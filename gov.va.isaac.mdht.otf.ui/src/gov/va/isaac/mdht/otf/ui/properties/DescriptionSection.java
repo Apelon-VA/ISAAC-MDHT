@@ -129,7 +129,7 @@ public class DescriptionSection extends AbstractPropertySection {
 	private void retireDescription(final DescriptionVersionBI<?> description) {
 		try {
 			DescriptionCAB blueprint = description.makeBlueprint(
-					storeService.getSnomedStatedLatest(),
+					storeService.getViewCoordinate(),
 					IdDirective.PRESERVE,
 					RefexDirective.INCLUDE);
 			
@@ -358,12 +358,13 @@ public class DescriptionSection extends AbstractPropertySection {
 
 			@Override
 		    protected void createColumns() {
-		        String[] titles = { "Text", "Language", "Initial Case Sig" };
-		        int[] bounds = { 300, 100, 100 };
+		        String[] titles = { "Text", "Language", "Initial Case Sig", "Module" };
+		        int[] bounds = { 300, 100, 100, 200 };
 		
 		        TableViewerColumn textColumn = createTableViewerColumn(titles[0], bounds[0], 0);
 		        TableViewerColumn languageColumn = createTableViewerColumn(titles[1], bounds[1], 1);
 		        TableViewerColumn initialCaseColumn = createTableViewerColumn(titles[2], bounds[2], 2);
+		        TableViewerColumn moduleColumn = createTableViewerColumn(titles[3], bounds[3], 3);
 		        
 		        textColumn.setEditingSupport(new TextEditingSupport(this) {
 					@Override
@@ -463,6 +464,7 @@ public class DescriptionSection extends AbstractPropertySection {
 						return description.isInitialCaseSignificant();
 					}
 		        });
+
 		    }
 		};
 

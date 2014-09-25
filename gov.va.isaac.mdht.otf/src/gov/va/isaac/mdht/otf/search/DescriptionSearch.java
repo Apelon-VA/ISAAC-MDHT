@@ -49,7 +49,7 @@ public class DescriptionSearch extends LuceneSearch {
 	private IndexerBI descriptionIndexer = null;
 
 	public Query getActiveDescriptionQuery(final String matchText) throws IOException {
-		ViewCoordinate vc = storeService.getSnomedStatedLatest();
+		ViewCoordinate vc = storeService.getViewCoordinate();
         Query query = new Query(vc) {
             @Override
             protected NativeIdSetBI For() throws IOException {
@@ -77,7 +77,7 @@ public class DescriptionSearch extends LuceneSearch {
 	}
 
 	public Query getActiveDescriptionQuery(final String matchText, final ConceptSpec parentSpec) throws IOException, ContradictionException {
-		ViewCoordinate vc = storeService.getSnomedStatedLatest();
+		ViewCoordinate vc = storeService.getViewCoordinate();
         Query query = new Query(vc) {
             @Override
             protected NativeIdSetBI For() throws IOException {
@@ -101,7 +101,7 @@ public class DescriptionSearch extends LuceneSearch {
 	}
 
 	protected Query getQueryIsKindOf(ConceptVersionBI parent) throws IOException {
-		ViewCoordinate vc = storeService.getSnomedStatedLatest();
+		ViewCoordinate vc = storeService.getViewCoordinate();
         Query query = new Query(vc) {
             @Override
             protected NativeIdSetBI For() throws IOException {

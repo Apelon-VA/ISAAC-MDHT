@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="tcc-api-1.1-va-1.5.jar"/>
+	<classpathentry exported="true" kind="lib" path="tcc-api-1.1-va-1.5.jar" sourcepath="/tcc-api/src"/>
 	<classpathentry exported="true" kind="lib" path="tcc-datastore-1.1-va-1.5.jar"/>
 	<classpathentry exported="true" kind="lib" path="tcc-dto-ddo-1.1-va-1.5.jar"/>
 	<classpathentry exported="true" kind="lib" path="tcc-lookup-1.1-va-1.5.jar"/>

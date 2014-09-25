@@ -159,7 +159,7 @@ public abstract class RefsetMemberSection extends AbstractPropertySection {
 
 	protected void retireMember(final RefexVersionBI<?> refex) {
 		try {
-			RefexCAB blueprint = refex.makeBlueprint(storeService.getSnomedStatedLatest(),
+			RefexCAB blueprint = refex.makeBlueprint(storeService.getViewCoordinate(),
 					IdDirective.PRESERVE, RefexDirective.INCLUDE);
 
 			// TODO for now, required workaround to eliminate NPE

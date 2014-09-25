@@ -3,6 +3,21 @@
 <plugin>
 
    <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            name="%category_ISAAC"
+            class="gov.va.isaac.mdht.otf.ui.preferences.IsaacPreferencePage"
+            id="gov.va.isaac.mdht.otf.ui.preferences.IsaacPreferencePage">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="gov.va.isaac.mdht.otf.ui.preferences.PreferenceInitializer">
+      </initializer>
+   </extension>
+
+   <extension
          point="org.eclipse.ui.views">
       <category
             name="%category_ISAAC"

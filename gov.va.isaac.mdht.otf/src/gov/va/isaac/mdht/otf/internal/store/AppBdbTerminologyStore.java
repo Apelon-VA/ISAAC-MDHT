@@ -40,17 +40,23 @@ import org.ihtsdo.otf.tcc.api.concept.ConceptChronicleBI;
 import org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI;
 import org.ihtsdo.otf.tcc.api.contradiction.ContradictionException;
 import org.ihtsdo.otf.tcc.api.coordinate.EditCoordinate;
+import org.ihtsdo.otf.tcc.api.coordinate.Position;
 import org.ihtsdo.otf.tcc.api.coordinate.StandardViewCoordinates;
 import org.ihtsdo.otf.tcc.api.coordinate.ViewCoordinate;
 import org.ihtsdo.otf.tcc.api.metadata.binding.Snomed;
 import org.ihtsdo.otf.tcc.api.metadata.binding.TermAux;
+import org.ihtsdo.otf.tcc.api.spec.ConceptSpec;
 import org.ihtsdo.otf.tcc.api.spec.ValidationException;
 import org.ihtsdo.otf.tcc.api.store.TerminologyStoreDI;
 import org.ihtsdo.otf.tcc.datastore.BdbTermBuilder;
 import org.ihtsdo.otf.tcc.datastore.BdbTerminologyStore;
 import org.osgi.framework.Bundle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AppBdbTerminologyStore {
+	private static final Logger LOG = LoggerFactory.getLogger(AppBdbTerminologyStore.class);
+
     public static final String BDB_LOCATION_PROPERTY = "org.ihtsdo.otf.tcc.datastore.bdb-location";
     
     public static final String TEST_DATA_BUNDLE = "gov.va.isaac.otf.test-data";
@@ -60,18 +66,23 @@ public class AppBdbTerminologyStore {
 	public static final String ISAAC_ROOT_UUID = "c767a452-41e3-5835-90b7-439f5b738035";
 	public static final String SNOMED_CT_CONCEPT_UUID = "ee9ac5d2-a07c-3981-a57a-f7f26baf38d8";
 	public static final String LOINC_ROOT_UUID = "3958d043-9e8c-508e-bf6d-fd9c83a856da";
-	public static final String REFSET_AUXILLIARY_UUID = "1c698388-c309-3dfa-96f0-86248753fac5";
+
+	public static final String MODULE_ROOT_UUID = "40d1c869-b509-32f8-b735-836eac577a67";
 	
-	// other referenced concepts
-	public static final String REFSET_IDENTITY_UUID = "3e0cd740-2cc6-3d68-ace7-bad2eb2621da";
+	//TODO we need to look up paths dynamically in the DB, let the user choose - store the setting / default somewhere in the DB (or user profile?)
+	private static ConceptSpec ISAAC_DEV_PATH = new ConceptSpec("ISAAC development path", "f5c0a264-15af-5b94-a964-bb912ea5634f");
 	
 	public static AppBdbTerminologyStore INSTANCE = new AppBdbTerminologyStore();
 	private TerminologyStoreDI store = null;
 	private TerminologyBuilderBI builder = null;
 	
-	private ViewCoordinate snomedStatedLatest = null;
+	private String databasePath = null;
+	private ConceptChronicleBI editModule = null;
+	private ConceptChronicleBI currentUser = null;
+	private ConceptChronicleBI currentEditPath = null;
+	
+	private ViewCoordinate viewCoordinate = null;
 	private EditCoordinate editCoordinate = null;
-    private int snomedAssemblageNid = 0;
 	
 	private AppBdbTerminologyStore() {
 		
@@ -88,8 +99,20 @@ public class AppBdbTerminologyStore {
 		return INSTANCE;
 	}
 	
+	public String getDatabasePath() {
+		if (databasePath != null) {
+			return databasePath;
+		}
+
+		return getUserHomePath();
+	}
+	
+	public void setDatabasePath(String path) {
+		databasePath = path;
+	}
+	
 	protected void setBbdSystemProperty() {
-		String bdbPath = getUserHomePath();
+		String bdbPath = getDatabasePath();
 		
 		if (bdbPath == null) {
 			bdbPath = getBundlePath();
@@ -100,7 +123,7 @@ public class AppBdbTerminologyStore {
 		}
 	}
 
-	protected String getUserHomePath() {
+	private String getUserHomePath() {
 		StringBuffer bdbPath = new StringBuffer();
 		bdbPath.append(System.getProperty("user.home"));
 		bdbPath.append("/");
@@ -136,12 +159,73 @@ public class AppBdbTerminologyStore {
 		
 		return bdbPath;
 	}
+
+	public ConceptChronicleBI getEditModule() throws ValidationException, IOException {
+		ConceptChronicleBI moduleConcept = null;
+		if (editModule != null) {
+			moduleConcept =  editModule;
+		}
+		else {
+			moduleConcept = Snomed.CORE_MODULE.getLenient();
+		}
+		
+		return moduleConcept;
+	}
+
+	public ConceptChronicleBI getEditUser() throws ValidationException, IOException {
+		ConceptChronicleBI userConcept = null;
+		if (currentUser != null) {
+			userConcept =  currentUser;
+		}
+		else {
+			userConcept = TermAux.USER.getLenient();
+		}
+		
+		return userConcept;
+	}
+
+	public ConceptChronicleBI getEditPath() throws ValidationException, IOException {
+		ConceptChronicleBI pathConcept = null;
+		if (currentEditPath != null) {
+			pathConcept =  currentEditPath;
+		}
+		else {
+			pathConcept = TermAux.SNOMED_CORE.getLenient();
+
+			//If the ISAAC_DEV_PATH concept exists, use it.
+			if (getConcept(ISAAC_DEV_PATH.getUuids()[0]).getUUIDs().size() > 0) {
+				LOG.info("Using path " + ISAAC_DEV_PATH.getDescription() + " as the Edit Coordinate");
+				// Override edit path nid with "ISAAC development path"
+				pathConcept = ISAAC_DEV_PATH.getLenient();
+			}
+		}
+		
+		return pathConcept;
+	}
+
+	public void setEditModule(UUID moduleUUID) throws IOException {
+		editModule = getStore().getConcept(moduleUUID);
+		editCoordinate = null;
+		builder = null;
+	}
+
+	public void setEditUser(UUID userUUID) throws IOException {
+		currentUser = getStore().getConcept(userUUID);
+		editCoordinate = null;
+		builder = null;
+	}
+
+	public void setEditPath(UUID pathUUID) throws IOException {
+		currentEditPath = getStore().getConcept(pathUUID);
+		editCoordinate = null;
+		builder = null;
+	}
 	
 	private EditCoordinate getEditCoordinate() throws ValidationException, IOException {
 		if (editCoordinate == null) {
-	        int authorNid   = TermAux.USER.getLenient().getConceptNid();
-	        int module = Snomed.CORE_MODULE.getLenient().getNid();
-	        int editPathNid = TermAux.SNOMED_CORE.getLenient().getConceptNid();
+	        int authorNid   = getEditUser().getNid();
+	        int module = getEditModule().getNid();
+	        int editPathNid = getEditPath().getNid();
 	
 	        editCoordinate =  new EditCoordinate(authorNid, module, editPathNid);
 		}
@@ -154,6 +238,11 @@ public class AppBdbTerminologyStore {
 			store.shutdown();
 		}
 	}
+	
+	public void restart() {
+		shutdown();
+		getStore();
+	}
 
 	public TerminologyStoreDI getStore() {
 		// TODO run as background job.  does this need to be in UI plug-in?
@@ -165,33 +254,35 @@ public class AppBdbTerminologyStore {
 		return store;
 	}
 	
-	public ViewCoordinate getSnomedStatedLatest() throws IOException {
-		if (snomedStatedLatest == null) {
-			// store must be initialized
-			getStore();
-			snomedStatedLatest = StandardViewCoordinates.getSnomedStatedLatest();
-		}
-		return snomedStatedLatest;
-	}
-	
-	public int getSnomedAssemblageNid() {
-		if (snomedAssemblageNid == 0) {
+	/**
+	 * Currently configured to return InferredThenStatedLatest + INACTIVE status
+	 */
+	public ViewCoordinate getViewCoordinate() {
+		if (viewCoordinate == null) {
 			try {
 				// store must be initialized
 				getStore();
-				snomedAssemblageNid = TermAux.SNOMED_IDENTIFIER.getNid();
+				viewCoordinate = StandardViewCoordinates.getSnomedStatedLatest();
+				
+				//If the ISAAC_DEV_PATH concept exists, use it.
+				if (getConcept(ISAAC_DEV_PATH.getUuids()[0]).getUUIDs().size() > 0) {
+					LOG.info("Using path " + ISAAC_DEV_PATH.getDescription() + " as the View Coordinate");
+					// Start with standard view coordinate and override the path setting to use the ISAAC development path
+					Position position = getStore().newPosition(getStore().getPath(ISAAC_DEV_PATH.getLenient().getConceptNid()), Long.MAX_VALUE);
+					viewCoordinate.setViewPosition(position);
+				}
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-//				e.printStackTrace();
+				LOG.error("Unexpected error fetching view coordinates!", e);
 			}
 		}
-		return snomedAssemblageNid;
+		
+		return viewCoordinate;
 	}
 
 	public TerminologyBuilderBI getBuilder() {
 		if (builder == null) {
 			try {
-				builder = new BdbTermBuilder(getEditCoordinate(), getSnomedStatedLatest());
+				builder = new BdbTermBuilder(getEditCoordinate(), getViewCoordinate());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -253,7 +344,7 @@ public class AppBdbTerminologyStore {
 		ConceptVersionBI conceptVersion = null;
 		
 		try {
-			ViewCoordinate vc = getSnomedStatedLatest();
+			ViewCoordinate vc = getViewCoordinate();
 			
 			ConceptChronicleBI conceptChronicle = getStore().getConcept(uuid);
 			conceptVersion = conceptChronicle.getVersion(vc);

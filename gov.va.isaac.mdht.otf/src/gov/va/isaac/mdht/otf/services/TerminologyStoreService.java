@@ -23,13 +23,12 @@ import gov.va.isaac.mdht.otf.internal.store.AppBdbTerminologyStore;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import org.ihtsdo.otf.tcc.api.concept.ConceptChronicleBI;
 import org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI;
-import org.ihtsdo.otf.tcc.api.coordinate.StandardViewCoordinates;
 import org.ihtsdo.otf.tcc.api.coordinate.ViewCoordinate;
 import org.ihtsdo.otf.tcc.api.description.DescriptionVersionBI;
-import org.ihtsdo.otf.tcc.api.metadata.binding.TermAux;
 import org.ihtsdo.otf.tcc.api.refex.RefexChronicleBI;
 import org.ihtsdo.otf.tcc.api.relationship.RelationshipVersionBI;
 import org.ihtsdo.otf.tcc.api.store.TerminologyStoreDI;
@@ -41,23 +40,27 @@ public class TerminologyStoreService {
 	public TerminologyStoreService(AppBdbTerminologyStore appDb) {
 		this.appTermStore = appDb;
 	}
+
+	public void setEditModule(UUID moduleUUID) throws IOException {
+		appTermStore.setEditModule(moduleUUID);
+	}
+
+	public void setEditUser(UUID userUUID) throws IOException {
+		appTermStore.setEditUser(userUUID);
+	}
+
+	public void setEditPath(UUID pathUUID) throws IOException {
+		appTermStore.setEditPath(pathUUID);
+	}
 	
 	public TerminologyStoreDI getTerminologyStore() {
 		return appTermStore.getStore();
 	}
 
-	public ViewCoordinate getSnomedStatedLatest() throws IOException {
-		// store must be initialized
-		appTermStore.getStore();
-		return StandardViewCoordinates.getSnomedStatedLatest();
+	public ViewCoordinate getViewCoordinate() throws IOException {
+		return appTermStore.getViewCoordinate();
 	}
 	
-	public int getSnomedAssemblageNid() throws IOException {
-		// store must be initialized
-		appTermStore.getStore();
-		return TermAux.SNOMED_IDENTIFIER.getNid();
-	}
-
 	public List<ConceptVersionBI> getRootConcepts() {
 		return appTermStore.getRootConcepts();
 	}

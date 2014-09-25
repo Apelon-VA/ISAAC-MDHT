@@ -84,7 +84,7 @@ public class LuceneSearch {
 				results.add((ConceptVersionBI)component);
 			}
 			else if (component instanceof DescriptionVersionBI) {
-				ConceptVersionBI concept = ((DescriptionVersionBI<?>)component).getEnclosingConcept().getVersion(storeService.getSnomedStatedLatest());
+				ConceptVersionBI concept = ((DescriptionVersionBI<?>)component).getEnclosingConcept().getVersion(storeService.getViewCoordinate());
 				if (concept != null && !results.contains(concept)) {
 					results.add(concept);
 				}

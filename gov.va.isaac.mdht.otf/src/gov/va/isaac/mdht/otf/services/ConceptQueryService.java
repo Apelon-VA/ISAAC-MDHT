@@ -31,7 +31,9 @@ import org.ihtsdo.otf.tcc.api.chronicle.ComponentVersionBI;
 import org.ihtsdo.otf.tcc.api.conattr.ConceptAttributeVersionBI;
 import org.ihtsdo.otf.tcc.api.concept.ConceptChronicleBI;
 import org.ihtsdo.otf.tcc.api.concept.ConceptVersionBI;
+import org.ihtsdo.otf.tcc.api.contradiction.ContradictionException;
 import org.ihtsdo.otf.tcc.api.coordinate.ViewCoordinate;
+import org.ihtsdo.otf.tcc.api.metadata.binding.TermAux;
 import org.ihtsdo.otf.tcc.api.refex.RefexChronicleBI;
 import org.ihtsdo.otf.tcc.api.refex.type_long.RefexLongVersionBI;
 
@@ -67,6 +69,24 @@ public class ConceptQueryService {
 		return children;
 	}
 
+	/*
+	 * TODO get modules by code system?
+	 */
+	public List<ConceptVersionBI> getAllModules() throws IOException, ContradictionException {
+		List<ConceptVersionBI> modules = new ArrayList<ConceptVersionBI>();
+		ConceptVersionBI rootModule = getConcept(UUID.fromString(AppBdbTerminologyStore.MODULE_ROOT_UUID));
+		List<ConceptVersionBI> allModules = getAllChildren(rootModule);
+		
+		// collect only leaf concepts, those with no children
+		for (ConceptVersionBI module : allModules) {
+			if (module.getRelationshipsIncomingOriginsActiveIsa().isEmpty()) {
+				modules.add(module);
+			}
+		}
+		
+		return modules;
+	}
+
 	/**
 	 * Recursively collect all parents of given concept, but only first if multiple parents.
 	 * 
@@ -97,7 +117,7 @@ public class ConceptQueryService {
 		ComponentVersionBI componentVersion = null;
 		
 		try {
-			ViewCoordinate vc = appTermStore.getSnomedStatedLatest();
+			ViewCoordinate vc = appTermStore.getViewCoordinate();
 			
 			ComponentChronicleBI<?> componentChronicle = appTermStore.getStore().getComponent(uuid);
 			if (componentChronicle instanceof ConceptAttributeVersionBI) {
@@ -117,7 +137,7 @@ public class ConceptQueryService {
 		ComponentVersionBI componentVersion = null;
 		
 		try {
-			ViewCoordinate vc = appTermStore.getSnomedStatedLatest();
+			ViewCoordinate vc = appTermStore.getViewCoordinate();
 			
 			ComponentChronicleBI<?> componentChronicle = appTermStore.getStore().getComponent(nid);
 			if (componentChronicle instanceof ConceptAttributeVersionBI) {
@@ -137,7 +157,7 @@ public class ConceptQueryService {
 		ConceptVersionBI conceptVersion = null;
 		
 		try {
-			ViewCoordinate vc = appTermStore.getSnomedStatedLatest();
+			ViewCoordinate vc = appTermStore.getViewCoordinate();
 			
 			ConceptChronicleBI conceptChronicle = appTermStore.getStore().getConcept(uuid);
 			if (conceptChronicle != null) {
@@ -160,7 +180,7 @@ public class ConceptQueryService {
 		ConceptVersionBI conceptVersion = null;
 
 		try {
-			ViewCoordinate vc = appTermStore.getSnomedStatedLatest();
+			ViewCoordinate vc = appTermStore.getViewCoordinate();
 			
 			ConceptChronicleBI conceptChronicle = appTermStore.getStore().getConcept(nid);
 			conceptVersion = conceptChronicle.getVersion(vc);
@@ -173,11 +193,17 @@ public class ConceptQueryService {
 		return conceptVersion;
 	}
 
+	public ConceptVersionBI getModuleFor(ComponentVersionBI component) {
+		ConceptVersionBI module = getConcept(component.getModuleNid());
+		
+		return module;
+	}
+	
 	public Long getSctid(ComponentBI component) {
 		Long sctid = null;
-		int snomedAssemblageNid = appTermStore.getSnomedAssemblageNid();
-
 		try {
+			int snomedAssemblageNid = TermAux.SNOMED_IDENTIFIER.getNid();
+			
 			for (RefexChronicleBI<?> annotation : component.getAnnotations()) {
 				if (annotation.getAssemblageNid() == snomedAssemblageNid) {
 					RefexLongVersionBI<?> sctidVersion = (RefexLongVersionBI<?>) annotation.getPrimordialVersion();
