@@ -224,8 +224,11 @@ public class RelationshipSection extends AbstractPropertySection {
 		if (allConceptModelAttributes == null) {
 			allConceptModelAttributes = new ArrayList<ConceptVersionBI>();
 			
+			ConceptVersionBI isA = queryService.getConcept(Snomed.IS_A.getUuids()[0]);
+			allConceptModelAttributes.add(isA);
+			
 			ConceptVersionBI conceptModelAttribute = queryService.getConcept(CONCEPT_MODEL_ATTRIBUTE_UUID);
-			allConceptModelAttributes = queryService.getAllChildren(conceptModelAttribute);
+			allConceptModelAttributes.addAll(queryService.getAllChildren(conceptModelAttribute));
 			
 			// sort by label
 			Collections.sort(allConceptModelAttributes, new DescriptionComparator());
