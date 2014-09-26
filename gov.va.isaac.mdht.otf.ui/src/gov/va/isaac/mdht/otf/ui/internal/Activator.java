@@ -18,6 +18,14 @@
  *******************************************************************************/
 package gov.va.isaac.mdht.otf.ui.internal;
 
+import gov.va.isaac.mdht.otf.services.TerminologyStoreFactory;
+import gov.va.isaac.mdht.otf.services.TerminologyStoreService;
+import gov.va.isaac.mdht.otf.ui.preferences.PreferenceConstants;
+
+import java.io.IOException;
+import java.util.UUID;
+
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -47,6 +55,20 @@ public class Activator extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
+		
+		setPreferences();
+	}
+	
+	private void setPreferences() throws IOException {
+		IPreferenceStore store = Activator.getDefault().getPreferenceStore();
+		UUID moduleUUID = UUID.fromString(store.getString(PreferenceConstants.MODULE_UUID));
+		UUID userUUID = UUID.fromString(store.getString(PreferenceConstants.USER_UUID));
+		UUID pathUUID = UUID.fromString(store.getString(PreferenceConstants.PATH_UUID));
+		
+		TerminologyStoreService storeService = TerminologyStoreFactory.INSTANCE.createTerminologyStoreService();
+		storeService.setEditModule(moduleUUID);
+		storeService.setEditUser(userUUID);
+		storeService.setEditPath(pathUUID);
 	}
 
 	/*

@@ -78,7 +78,7 @@ public class ConceptBuilderService {
 		LanguageCode lang = LanguageCode.EN_US;
 		UUID isA = Snomed.IS_A.getUuids()[0];
 		IdDirective idDir = IdDirective.GENERATE_HASH;
-        UUID module = Snomed.CORE_MODULE.getLenient().getPrimordialUuid();
+        UUID module = appTermStore.getEditModule().getPrimordialUuid();
         
         UUID parentsUUID[] = new UUID[parents.size()];
         int index = 0;
@@ -111,7 +111,7 @@ public class ConceptBuilderService {
 			throws IOException, InvalidCAB, ContradictionException {
 
 		DescriptionCAB blueprint = description.makeBlueprint(
-				storeService.getSnomedStatedLatest(),
+				storeService.getViewCoordinate(),
 				IdDirective.GENERATE_HASH,
 				RefexDirective.INCLUDE);
 		return blueprint;
@@ -184,7 +184,7 @@ public class ConceptBuilderService {
 //		RelationshipCAB blueprint = new RelationshipCAB(relationship.getConceptNid(), relationship.getTypeNid(), relationship.getDestinationNid(), 1, 
 //				RelationshipType.QUALIFIER, relationship, storeService.getSnomedStatedLatest(), IdDirective.GENERATE_HASH, RefexDirective.INCLUDE);
 		
-		RelationshipCAB blueprint = relationship.makeBlueprint(storeService.getSnomedStatedLatest(), IdDirective.GENERATE_HASH, RefexDirective.INCLUDE);
+		RelationshipCAB blueprint = relationship.makeBlueprint(storeService.getViewCoordinate(), IdDirective.GENERATE_HASH, RefexDirective.INCLUDE);
 		return blueprint;
 	}
 
@@ -201,7 +201,7 @@ public class ConceptBuilderService {
 	public RefexCAB modifyRefex(RefexVersionBI refex) 
 			throws IOException, InvalidCAB, ContradictionException {
 		
-		RefexCAB blueprint = refex.makeBlueprint(storeService.getSnomedStatedLatest(), IdDirective.GENERATE_HASH, RefexDirective.INCLUDE);
+		RefexCAB blueprint = refex.makeBlueprint(storeService.getViewCoordinate(), IdDirective.GENERATE_HASH, RefexDirective.INCLUDE);
 		return blueprint;
 	}
 
@@ -254,7 +254,7 @@ public class ConceptBuilderService {
 	public ConceptVersionBI construct(ConceptCB blueprint) throws IOException, InvalidCAB, ContradictionException {
 		ConceptChronicleBI chronicle = appTermStore.getBuilder().construct(blueprint);
 		appTermStore.getStore().addUncommitted(chronicle);
-		ConceptVersionBI version = chronicle.getVersion(appTermStore.getSnomedStatedLatest());
+		ConceptVersionBI version = chronicle.getVersion(appTermStore.getViewCoordinate());
 		
 		return version;
 	}
@@ -262,49 +262,49 @@ public class ConceptBuilderService {
 	public ConceptAttributeVersionBI construct(ConceptAttributeAB blueprint) throws IOException, InvalidCAB, ContradictionException {
 		ConceptAttributeChronicleBI chronicle = appTermStore.getBuilder().construct(blueprint);
 		appTermStore.getStore().addUncommitted(chronicle.getEnclosingConcept());
-		ConceptAttributeVersionBI version = chronicle.getVersion(appTermStore.getSnomedStatedLatest());
+		ConceptAttributeVersionBI version = chronicle.getVersion(appTermStore.getViewCoordinate());
 		
 		return version;
 	}
 
 	public DescriptionVersionBI construct(DescriptionCAB blueprint) throws IOException, InvalidCAB, ContradictionException {
 		DescriptionChronicleBI chronicle = appTermStore.getBuilder().construct(blueprint);
-		DescriptionVersionBI version = chronicle.getVersion(appTermStore.getSnomedStatedLatest());
+		DescriptionVersionBI version = chronicle.getVersion(appTermStore.getViewCoordinate());
 		
 		return version;
 	}
 
 	public DescriptionVersionBI constructIfNotCurrent(DescriptionCAB blueprint) throws IOException, InvalidCAB, ContradictionException {
 		DescriptionChronicleBI chronicle = appTermStore.getBuilder().constructIfNotCurrent(blueprint);
-		DescriptionVersionBI version = chronicle.getVersion(appTermStore.getSnomedStatedLatest());
+		DescriptionVersionBI version = chronicle.getVersion(appTermStore.getViewCoordinate());
 		
 		return version;
 	}
 
 	public RelationshipVersionBI construct(RelationshipCAB blueprint) throws IOException, InvalidCAB, ContradictionException {
 		RelationshipChronicleBI chronicle = appTermStore.getBuilder().construct(blueprint);
-		RelationshipVersionBI version = chronicle.getVersion(appTermStore.getSnomedStatedLatest());
+		RelationshipVersionBI version = chronicle.getVersion(appTermStore.getViewCoordinate());
 		
 		return version;
 	}
 
 	public RelationshipVersionBI constructIfNotCurrent(RelationshipCAB blueprint) throws IOException, InvalidCAB, ContradictionException {
 		RelationshipChronicleBI chronicle = appTermStore.getBuilder().constructIfNotCurrent(blueprint);
-		RelationshipVersionBI version = chronicle.getVersion(appTermStore.getSnomedStatedLatest());
+		RelationshipVersionBI version = chronicle.getVersion(appTermStore.getViewCoordinate());
 		
 		return version;
 	}
 
 	public RefexVersionBI construct(RefexCAB blueprint) throws IOException, InvalidCAB, ContradictionException {
 		RefexChronicleBI chronicle = appTermStore.getBuilder().construct(blueprint);
-		RefexVersionBI version = (RefexVersionBI) chronicle.getVersion(appTermStore.getSnomedStatedLatest());;
+		RefexVersionBI version = (RefexVersionBI) chronicle.getVersion(appTermStore.getViewCoordinate());;
 		
 		return version;
 	}
 
 	public RefexVersionBI constructIfNotCurrent(RefexCAB blueprint) throws IOException, InvalidCAB, ContradictionException {
 		RefexChronicleBI chronicle = appTermStore.getBuilder().constructIfNotCurrent(blueprint);
-		RefexVersionBI version = (RefexVersionBI) chronicle.getVersion(appTermStore.getSnomedStatedLatest());
+		RefexVersionBI version = (RefexVersionBI) chronicle.getVersion(appTermStore.getViewCoordinate());
 		
 		return version;
 	}

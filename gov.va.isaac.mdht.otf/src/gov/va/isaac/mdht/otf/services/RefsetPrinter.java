@@ -80,7 +80,7 @@ public class RefsetPrinter {
 
 	private void printAnnotations(ConceptVersionBI concept) throws Exception {
 		Collection<? extends RefexChronicleBI<?>> annotations = concept.getAnnotations();
-		Collection<? extends RefexVersionBI<?>> activeAnnotations = concept.getAnnotationsActive(storeService.getSnomedStatedLatest());
+		Collection<? extends RefexVersionBI<?>> activeAnnotations = concept.getAnnotationsActive(storeService.getViewCoordinate());
 		
 		output.println("Has " + annotations.size() + " Annotations, "+ activeAnnotations.size() + " active:");
 		

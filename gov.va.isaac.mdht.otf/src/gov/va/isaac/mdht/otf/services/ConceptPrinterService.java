@@ -76,7 +76,7 @@ public class ConceptPrinterService {
 		printBasicIds(concept, output);
 
 		try {
-			ViewCoordinate vc = appTermStore.getSnomedStatedLatest();
+			ViewCoordinate vc = appTermStore.getViewCoordinate();
 			output.println("Concept Fully Defined: " + concept.getConceptAttributes().getVersion(vc).isDefined());
 		}
 		catch (Exception e) {
@@ -89,7 +89,7 @@ public class ConceptPrinterService {
 
 	private void printDescriptions(ConceptChronicleBI concept, PrintStream output) throws IOException, ContradictionException {
 		Collection<? extends DescriptionChronicleBI> allDesc = concept.getDescriptions();
-		ViewCoordinate vc = appTermStore.getSnomedStatedLatest();
+		ViewCoordinate vc = appTermStore.getViewCoordinate();
 
 		for (DescriptionChronicleBI descAllVersions : allDesc) {
 			DescriptionVersionBI<?> desc = descAllVersions.getVersion(vc);

@@ -157,7 +157,7 @@ public class AnnotationSection extends RefsetMemberSection {
 						try {
 							List<Object> members = new ArrayList<Object>();
 							
-							Collection<? extends RefexVersionBI<?>> activeMembers = conceptVersion.getAnnotationsActive(storeService.getSnomedStatedLatest());
+							Collection<? extends RefexVersionBI<?>> activeMembers = conceptVersion.getAnnotationsActive(storeService.getViewCoordinate());
 							members.addAll(activeMembers);
 							updateContentState(activeMembers);
 							

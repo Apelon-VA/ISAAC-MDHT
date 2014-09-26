@@ -62,7 +62,7 @@ public class IdentifierSearch extends LuceneSearch {
 	}
 
 	public Query getQueryForSnomedId(final String sctId) throws IOException {
-		final ViewCoordinate vc = storeService.getSnomedStatedLatest();
+		final ViewCoordinate vc = storeService.getViewCoordinate();
         Query query = new Query(vc) {
             @Override
             protected NativeIdSetBI For() throws IOException {

@@ -63,7 +63,7 @@ public class RetireConcept extends AbstractAction {
 					ConceptVersionBI conceptVersion = conceptItem.getConceptVersion();
 
 					ConceptCB blueprint = conceptVersion.makeBlueprint(
-							storeService.getSnomedStatedLatest(),
+							storeService.getViewCoordinate(),
 							IdDirective.PRESERVE,
 							RefexDirective.INCLUDE);
 					

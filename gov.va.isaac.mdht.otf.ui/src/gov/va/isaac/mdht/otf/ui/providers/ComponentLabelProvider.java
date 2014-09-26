@@ -22,6 +22,7 @@ import gov.va.isaac.mdht.otf.refset.RefsetMember;
 import gov.va.isaac.mdht.otf.services.ConceptQueryService;
 import gov.va.isaac.mdht.otf.services.TerminologyStoreFactory;
 import gov.va.isaac.mdht.otf.ui.internal.Activator;
+import gov.va.isaac.mdht.otf.ui.preferences.PreferenceUtil;
 
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IStatus;
@@ -300,6 +301,9 @@ public class ComponentLabelProvider extends LabelProvider implements ITableLabel
 					case 2: {
 						return Boolean.toString(description.isInitialCaseSignificant());
 					}
+					case 3: {
+						return queryService.getModuleFor(description).getPreferredDescription().getText();
+					}
 					default:
 						return null;
 				}
@@ -316,6 +320,9 @@ public class ComponentLabelProvider extends LabelProvider implements ITableLabel
 					}
 					case 2: {
 						return Boolean.toString(description.isInitialCaseSignificant());
+					}
+					case 3: {
+						return PreferenceUtil.getModule().getPreferredDescription().getText();
 					}
 					default:
 						return null;
@@ -334,6 +341,9 @@ public class ComponentLabelProvider extends LabelProvider implements ITableLabel
 					case 2: {
 						return Boolean.toString(relationship.isStated());
 					}
+					case 3: {
+						return queryService.getModuleFor(relationship).getPreferredDescription().getText();
+					}
 					default:
 						return null;
 				}
@@ -351,6 +361,9 @@ public class ComponentLabelProvider extends LabelProvider implements ITableLabel
 					case 2: {
 						//TODO can't find isStated() in RelationshipCAB
 						return Boolean.TRUE.toString();
+					}
+					case 3: {
+						return PreferenceUtil.getModule().getPreferredDescription().getText();
 					}
 					default:
 						return null;
