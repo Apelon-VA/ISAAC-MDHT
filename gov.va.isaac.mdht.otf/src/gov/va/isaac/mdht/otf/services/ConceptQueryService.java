@@ -78,11 +78,13 @@ public class ConceptQueryService {
 		List<ConceptVersionBI> allModules = getAllChildren(rootModule);
 		
 		// collect only leaf concepts, those with no children
-		for (ConceptVersionBI module : allModules) {
-			if (module.getRelationshipsIncomingOriginsActiveIsa().isEmpty()) {
-				modules.add(module);
-			}
-		}
+//		for (ConceptVersionBI module : allModules) {
+//			if (module.getRelationshipsIncomingOriginsActiveIsa().isEmpty()) {
+//				modules.add(module);
+//			}
+//		}
+		modules.add(rootModule);
+		modules.addAll(allModules);
 		
 		return modules;
 	}
